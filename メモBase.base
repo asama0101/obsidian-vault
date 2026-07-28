@@ -1,0 +1,18 @@
+filters:
+  or:
+    - file.inFolder("10_Inbox")
+    - file.inFolder("20_Diary")
+views:
+  - type: table
+    name: 最近のメモ
+    sort:
+      - column: file.mtime
+        direction: DESC
+    limit: 20
+    order:
+      - file.name
+      - file.folder
+      - file.mtime
+    columnSize:
+      file.folder: 110
+      file.mtime: 150

@@ -1,0 +1,72 @@
+filters:
+  and:
+    - 'type == "task"'
+views:
+  - type: table
+    name: すべて
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - priority
+      - due
+      - context
+      - tags
+      - goal
+    columnSize:
+      note.status: 130
+      note.priority: 110
+      note.tags: 133
+      note.goal: 166
+
+  - type: table
+    name: 期限順
+    filters:
+      and:
+        - 'status != "3_done"'
+    sort:
+      - column: due
+        direction: ASC
+    order:
+      - file.name
+      - due
+      - priority
+      - status
+      - context
+    columnSize:
+      note.due: 110
+      note.priority: 110
+
+  - type: table
+    name: 優先度別
+    filters:
+      and:
+        - 'status != "3_done"'
+    groupBy:
+      property: priority
+      direction: ASC
+    order:
+      - file.name
+      - priority
+      - due
+      - status
+      - context
+    columnSize:
+      note.priority: 110
+
+  - type: table
+    name: コンテキスト別
+    groupBy:
+      property: context
+      direction: ASC
+    order:
+      - file.name
+      - context
+      - status
+      - priority
+      - due
+    columnSize:
+      note.status: 130
+      note.priority: 110

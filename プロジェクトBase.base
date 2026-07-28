@@ -1,0 +1,17 @@
+filters:
+  and:
+    - 'type == "project"'
+views:
+  - type: table
+    name: プロジェクト一覧
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - priority
+      - due
+    columnSize:
+      note.status: 130
+      note.priority: 110

@@ -1,0 +1,16 @@
+filters:
+  and:
+    - 'type == "meeting"'
+views:
+  - type: table
+    name: 最近の議事録
+    sort:
+      - column: date
+        direction: DESC
+    order:
+      - file.name
+      - date
+      - context
+      - attendees
+    columnSize:
+      note.date: 110
