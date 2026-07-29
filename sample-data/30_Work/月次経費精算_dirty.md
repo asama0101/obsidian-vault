@@ -1,5 +1,6 @@
 ---
 type: task
+date: 2026-07-28
 status: "2_doing"
 priority: 1_high
 due: 2026-08-10

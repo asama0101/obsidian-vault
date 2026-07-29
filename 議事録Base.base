@@ -1,16 +1,29 @@
 filters:
   and:
-    - 'type == "meeting"'
+    - type == "meeting"
 views:
   - type: table
-    name: 最近の議事録
-    sort:
-      - column: date
-        direction: DESC
+    name: 議事録
     order:
       - file.name
       - date
       - context
-      - attendees
+      - tags
+    sort:
+      - property: date
+        direction: DESC
     columnSize:
       note.date: 110
+  - type: table
+    name: 最近の議事録
+    filters:
+      and:
+        - date >= today() - duration("7d")
+    order:
+      - file.name
+      - date
+      - context
+      - tags
+    sort:
+      - property: date
+        direction: DESC

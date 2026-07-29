@@ -1,5 +1,5 @@
 ---
-type: area
+date: {{date}}
 context: 
 tags:
   - 

@@ -1,9 +1,9 @@
 filters:
   and:
-    - 'type == "task"'
+    - type == "task"
 views:
   - type: table
-    name: すべて
+    name: タスク一覧
     groupBy:
       property: status
       direction: ASC
@@ -11,7 +11,9 @@ views:
       - file.name
       - status
       - priority
+      - date
       - due
+      - check
       - context
       - tags
       - goal
@@ -20,30 +22,28 @@ views:
       note.priority: 110
       note.tags: 133
       note.goal: 166
-
   - type: table
     name: 期限順
     filters:
       and:
-        - 'status != "3_done"'
-    sort:
-      - column: due
-        direction: ASC
+        - status != "3_done"
     order:
       - file.name
       - due
       - priority
       - status
       - context
+    sort:
+      - property: due
+        direction: ASC
     columnSize:
       note.due: 110
       note.priority: 110
-
   - type: table
     name: 優先度別
     filters:
       and:
-        - 'status != "3_done"'
+        - status != "3_done"
     groupBy:
       property: priority
       direction: ASC
@@ -55,7 +55,6 @@ views:
       - context
     columnSize:
       note.priority: 110
-
   - type: table
     name: コンテキスト別
     groupBy:
@@ -69,4 +68,57 @@ views:
       - due
     columnSize:
       note.status: 130
+      note.priority: 110
+  - type: table
+    name: チェック日順
+    filters:
+      and:
+        - status != "3_done"
+    order:
+      - file.name
+      - check
+      - priority
+      - status
+      - context
+    sort:
+      - property: check
+        direction: ASC
+    columnSize:
+      note.check: 110
+      note.priority: 110
+  - type: table
+    name: 期限切れ・本日期限
+    filters:
+      and:
+        - status != "3_done"
+        - due <= today()
+    order:
+      - file.name
+      - due
+      - priority
+      - status
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+      note.priority: 110
+  - type: table
+    name: 本日チェック
+    filters:
+      and:
+        - status != "3_done"
+        - check <= today()
+    order:
+      - file.name
+      - check
+      - priority
+      - status
+      - context
+    sort:
+      - property: check
+        direction: ASC
+    columnSize:
+      note.check: 110
       note.priority: 110

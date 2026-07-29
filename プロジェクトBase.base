@@ -1,6 +1,6 @@
 filters:
   and:
-    - 'type == "project"'
+    - type == "project"
 views:
   - type: table
     name: プロジェクト一覧
@@ -12,6 +12,9 @@ views:
       - status
       - priority
       - due
+      - context
+      - tags
+      - goal
     columnSize:
       note.status: 130
       note.priority: 110

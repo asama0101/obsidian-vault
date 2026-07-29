@@ -1,16 +1,10 @@
 filters:
   and:
-    - 'type == "area"'
+    - type == "area"
 views:
   - type: table
     name: エリア一覧
-    groupBy:
-      property: status
-      direction: ASC
     order:
       - file.name
-      - status
-      - priority
-    columnSize:
-      note.status: 130
-      note.priority: 110
+      - context
+      - tags

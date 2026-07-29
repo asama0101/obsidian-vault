@@ -1,8 +1,10 @@
 ---
 type: task
+date: {{date}}
 status: 1_todo
-priority: 2_medium
+priority: 3_low
 due: 
+check: 
 context: 
 tags:
   - 

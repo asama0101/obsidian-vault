@@ -2,9 +2,12 @@
 type: meeting
 date: "{{date}}"
 context: 
-attendees:
+tags:
   - 
 ---
+
+## 出席者
+- 
 
 ## 議題
 
@@ -13,4 +16,9 @@ attendees:
 
 
 ## アクションアイテム
-- [ ] 
+- [ ] [[]]
+- [ ] [[]]
+- [ ] [[]]
+
+
+## 次回
