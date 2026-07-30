@@ -3,8 +3,21 @@ date: {{date}}
 tags:
   - daily
 ---
+## Tips
+
+> [!DANGER] **必ず実施すること**
+> 前日のノートを表示する: Ctrl+H で「検索と置換」を開き、**YESTERDAY を前日の日付（例: 2026-07-29）に Ctrl+Alt+Enterで 一括置換**する。置換完了後は Esc で置換メニューを閉じる。
+
+```plaintext
+YESTERDAY
+```
+
+---
 ## スケジュール
 - 
+
+## 繰り返しのTodo
+- [ ] ゼンゼロのデイリーミッション消化
 
 ## 今日のTodo
 - [ ] 
@@ -45,12 +58,3 @@ tags:
 
 > [!NOTE]- 最近のメモ
 > ![[メモBase.base#最近のメモ]]
-
----
-## Tips
-
-> 前日のノートを表示する: Ctrl+H で「検索と置換」を開き、YESTERDAY を前日の日付（例: 2026-07-29）に Ctrl+Alt+Enterで 一括置換する。置換完了後は Esc で置換メニューを閉じる。
-
-```plaintext
-YESTERDAY
-```
