@@ -1,0 +1,17 @@
+filters:
+  and:
+    - type == "know-how"
+views:
+  - type: table
+    name: ノウハウ
+    order:
+      - file.name
+      - date
+      - context
+      - tags
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      file.name: 240
+      note.date: 110
