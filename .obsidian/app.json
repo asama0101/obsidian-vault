@@ -1,0 +1,10 @@
+{
+  "defaultViewMode": "preview",
+  "showLineNumber": true,
+  "alwaysUpdateLinks": true,
+  "openBehavior": "daily",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "10_Inbox",
+  "attachmentFolderPath": "90_Asset",
+  "readableLineLength": false
+}

@@ -1,0 +1,118 @@
+views:
+  - type: table
+    name: タスク一覧
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - date
+      - due
+      - check
+      - context
+    columnSize:
+      note.status: 130
+  - type: table
+    name: 期限順
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+    order:
+      - file.name
+      - due
+      - status
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: コンテキスト別
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+    groupBy:
+      property: context
+      direction: ASC
+    order:
+      - file.name
+      - context
+      - status
+      - due
+    columnSize:
+      note.status: 130
+  - type: table
+    name: チェック日順
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+    order:
+      - file.name
+      - check
+      - status
+      - context
+    sort:
+      - property: check
+        direction: ASC
+    columnSize:
+      note.check: 110
+  - type: table
+    name: 期限切れ・本日期限
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+        - due <= today()
+    order:
+      - file.name
+      - due
+      - status
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 本日チェック
+    filters:
+      and:
+        - type == "task"
+        - status != "3_done"
+        - check <= today()
+    order:
+      - file.name
+      - check
+      - status
+      - context
+    sort:
+      - property: check
+        direction: ASC
+    columnSize:
+      note.check: 110
+  - type: table
+    name: タスク：すべて（完了含む）
+    filters:
+      and:
+        - type == "task"
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - date
+      - due
+      - check
+      - context
+    columnSize:
+      note.status: 130

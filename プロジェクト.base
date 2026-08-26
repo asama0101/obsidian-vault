@@ -1,0 +1,52 @@
+views:
+  - type: table
+    name: プロジェクト一覧
+    filters:
+      and:
+        - type == "project"
+        - status != "2_done"
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - due
+      - context
+    columnSize:
+      note.status: 130
+  - type: table
+    name: プロジェクト：すべて（完了含む）
+    filters:
+      and:
+        - type == "project"
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - due
+      - context
+    columnSize:
+      note.status: 130
+  - type: table
+    name: プロジェクト詳細
+    filters:
+      and:
+        - file.hasLink(this.file)
+    groupBy:
+      property: type
+      direction: ASC
+    order:
+      - file.name
+      - type
+      - status
+      - due
+      - date
+      - context
+    columnSize:
+      note.type: 110
+      note.status: 130
+    summaries:
+      file.name: Count
