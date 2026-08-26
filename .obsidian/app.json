@@ -7,5 +7,6 @@
   "newFileFolderPath": "10_Inbox",
   "attachmentFolderPath": "90_Asset",
   "readableLineLength": false,
-  "showInlineTitle": false
+  "showInlineTitle": false,
+  "showUnsupportedFiles": true
 }
