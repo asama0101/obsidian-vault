@@ -76,6 +76,7 @@ vaultルート直下に以下を作成する。
 ### 4. `92_Template` にテンプレートファイルを配置する
 
 - [ ] `task.md` / `project.md` / `meeting.md` / `meeting-recurring.md` /`know-how.md` / `daily.md` / `memo.md` を `92_Template/` にコピーする
+- [ ] `92_Template/daily.md`の`## 繰り返しのタスク`を、自分の日々の繰り返しタスク（習慣・ルーティン）に書き換える
 - [ ] `設定 → コアプラグイン → テンプレート` を有効化し、テンプレートフォルダの場所を `92_Template` に設定する
 - [ ] `設定 → コアプラグイン → デイリーノート` の保存先フォルダを`20_Diary`、テンプレートファイルを `92_Template/daily.md`、日付形式を`YYYY-MM-DD` に設定する
 - [ ] `設定 → ファイルとリンク → 起動時に開くファイル` を `最後に開いたファイル` に設定する
@@ -93,6 +94,7 @@ vaultルート直下に以下を作成する。
 ### 6. Claude Codeコマンドを配置する
 
 - [ ] `CLAUDE.md`を`.claude/`配下に配置する
-- [ ] `.claude/commands/daily.md` / `meeting.md` / `audit.md` / `task.md` / `clip.md` / `find.md` / `status.md` / `wrapup.md` を配置する
+- [ ] `.claude/commands/meeting.md` / `audit.md` / `task.md` / `clip.md` / `find.md` / `status.md` / `wrapup.md` を配置する
+- [ ] `.claude/skills/daily/SKILL.md` を配置する
 - [ ] （任意）Google CalendarまたはOutlookのMCP連携を設定する。設定しない場合、`/daily`のカレンダー連携部分は自動でスキップされる
 - [ ] （任意）Microsoft 365/TeamsのMCP連携を設定する。設定しない場合、`/wrapup`のCopilot議事録転記部分は自動でスキップされる
