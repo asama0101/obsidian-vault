@@ -2,7 +2,7 @@
   "defaultViewMode": "preview",
   "showLineNumber": true,
   "alwaysUpdateLinks": true,
-  "openBehavior": "daily",
+  "openBehavior": "",
   "newFileLocation": "folder",
   "newFileFolderPath": "10_Inbox",
   "attachmentFolderPath": "90_Asset",
