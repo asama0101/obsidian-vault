@@ -1,7 +1,5 @@
 ---
 date: {{date}}
-tags:
-  - daily
 ---
 ## スケジュール
 - 
