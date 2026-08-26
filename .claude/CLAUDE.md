@@ -19,7 +19,7 @@
 | プロパティ | task | project | meeting | know-how | memo |
 |---|---|---|---|---|---|
 | type | ● | ● | ● | ● | |
-| status | ●(todo/doing/done) | ●(active/done) | | | |
+| status | ●(1_todo/2_doing/3_done) | ●(1_active/2_done) | | | |
 | due | ○ | ○ | | | |
 | check | ○ | | | | |
 | date | ● | | ● | ● | ● |
@@ -51,7 +51,7 @@
 ## コマンド
 
 - `/daily`: 当日のデイリーノートを作成・更新する（日次ブランチの作成/
-  チェックアウトも行う）
+  チェックアウトも行う）（`.claude/skills/daily/SKILL.md`にスキル化済み）
 - `/meeting <プロジェクト名>`: 議事録ノートを作成する（同じプロジェクトの議事録が既に2件以上あれば
   `92_Template/meeting-recurring.md`を使う）
 - `/audit`: 放置タスク・プロジェクト未設定の議事録・未タスク化のアクションアイテムを
