@@ -1,6 +1,6 @@
 # Obsidian vault セットアップ
 
-このvaultを新規に導入する手順。日々の使い方は`README.md`を参照。
+このvaultを新規に導入する手順。日々の使い方は`00_README/`配下の操作別マニュアル、vault全体の仕様は`../README.md`を参照。
 
 ## 前提
 
@@ -32,6 +32,9 @@
 
 ### 外観
 - 好みのテーマを設定する（`Typora-Vue`がすっきりしつつ色味がよい）
+
+### エディタ
+- インタインタイトルを `off` にする
 
 ## セットアップ手順
 
@@ -89,7 +92,7 @@ vaultルート直下に以下を作成する。
 
 ### 6. Claude Codeコマンドを配置する
 
-- [ ] `CLAUDE.md`をvaultルートに配置する
+- [ ] `CLAUDE.md`を`.claude/`配下に配置する
 - [ ] `.claude/commands/daily.md` / `meeting.md` / `audit.md` / `task.md` / `clip.md` / `find.md` / `status.md` / `wrapup.md` を配置する
 - [ ] （任意）Google CalendarまたはOutlookのMCP連携を設定する。設定しない場合、`/daily`のカレンダー連携部分は自動でスキップされる
 - [ ] （任意）Microsoft 365/TeamsのMCP連携を設定する。設定しない場合、`/wrapup`のCopilot議事録転記部分は自動でスキップされる

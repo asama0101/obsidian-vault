@@ -6,5 +6,6 @@
   "newFileLocation": "folder",
   "newFileFolderPath": "10_Inbox",
   "attachmentFolderPath": "90_Asset",
-  "readableLineLength": false
+  "readableLineLength": false,
+  "showInlineTitle": false
 }
