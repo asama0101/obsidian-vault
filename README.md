@@ -40,7 +40,7 @@
 自然言語トリガーで呼び出せる（`description`により自動登録されるため）。
 両者の違いは呼び出し可否ではなく、手順の複雑さと誤操作リスク。
 
-- **スキル**（`daily`/`meeting`/`task`/`status`/`wrapup`）: 複数手順・分岐が
+- **スキル**（`daily`/`meeting`/`know-how`/`memo`/`task`/`status`/`wrapup`）: 複数手順・分岐が
   あり、誤操作防止ガード（既存ファイルの上書き防止等）を要する操作。
   `.claude/skills/<name>/SKILL.md`に手順を定義する。
 - **コマンド**（`audit`/`clip`/`find`）: 単発・低リスクな操作。
