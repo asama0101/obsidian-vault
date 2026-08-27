@@ -1,0 +1,29 @@
+views:
+  - type: table
+    name: 全ノウハウ一覧
+    filters:
+      and:
+        - type == "know-how"
+    order:
+      - file.name
+      - date
+      - context
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
+  - type: table
+    name: コンテキスト別
+    filters:
+      and:
+        - type == "know-how"
+    groupBy:
+      property: context
+      direction: ASC
+    order:
+      - file.name
+      - context
+      - date
+    columnSize:
+      note.date: 110

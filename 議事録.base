@@ -1,0 +1,44 @@
+views:
+  - type: table
+    name: 全議事録一覧
+    filters:
+      and:
+        - type == "meeting"
+    order:
+      - file.name
+      - date
+      - context
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
+  - type: table
+    name: コンテキスト未設定
+    filters:
+      and:
+        - type == "meeting"
+        - "!context"
+    order:
+      - file.name
+      - date
+      - context
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
+  - type: table
+    name: コンテキスト別
+    filters:
+      and:
+        - type == "meeting"
+    groupBy:
+      property: context
+      direction: ASC
+    order:
+      - file.name
+      - context
+      - date
+    columnSize:
+      note.date: 110
