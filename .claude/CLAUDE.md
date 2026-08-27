@@ -53,21 +53,22 @@
 - `/daily`: 当日のデイリーノートを作成・更新する（日次ブランチの作成/
   チェックアウトも行う）（`.claude/skills/daily/SKILL.md`にスキル化済み）
 - `/meeting <プロジェクト名>`: 議事録ノートを作成する（同じプロジェクトの議事録が既に2件以上あれば
-  `92_Template/meeting-recurring.md`を使う）
+  `92_Template/meeting-recurring.md`を使う）（`.claude/skills/meeting/SKILL.md`にスキル化済み）
 - `/audit`: 放置タスク・プロジェクト未設定の議事録・未タスク化のアクションアイテムを
   検出する（読み取り専用。修正はしない）
 - `/task`: vault全体のタスクを対話的に棚卸する（放置候補・未タスク化候補を
-  抽出し、ユーザーの承認を得ながら追加・削除・更新まで行う）
+  抽出し、ユーザーの承認を得ながら追加・削除・更新まで行う）（`.claude/skills/task/SKILL.md`にスキル化済み）
 - `/clip <URL>`: URLの内容を取り込みメモ化する
 - `/find <キーワード>`: vault全体を横断検索する
 - `/status <プロジェクト名>`: プロジェクトノートの`## 進捗`見出しを、紐づくタスク・議事録・
-  ノウハウの状況から作成したサマリーで更新する
+  ノウハウの状況から作成したサマリーで更新する（`.claude/skills/status/SKILL.md`にスキル化済み）
 - `/wrapup`: 1日の終わりに、今日作成・編集したノートの`context`補完・
   議事録のアクションアイテムのタスク化・Teams/Copilot議事録の転記・
   プロジェクトノートの進捗サマリー更新・`30_Work`/`40_Knowledge`の自動整理を行い、
-  最後に今日の変更をコミットして`main`へマージ・pushする
+  最後に今日の変更をコミットして`main`へマージ・pushする（`.claude/skills/wrapup/SKILL.md`にスキル化済み）
 
-各コマンドの詳細手順は`.claude/commands/`配下の対応するファイルを参照する。
+各コマンドの詳細手順は、スキル化済みのものは`.claude/skills/<name>/SKILL.md`、
+それ以外は`.claude/commands/`配下の対応するファイルを参照する。
 
 ## フォルダ
 
