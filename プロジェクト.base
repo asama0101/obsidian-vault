@@ -45,8 +45,8 @@ views:
       - due
       - date
       - context
+    summaries:
+      file.name: Count
     columnSize:
       note.type: 110
       note.status: 130
-    summaries:
-      file.name: Count
