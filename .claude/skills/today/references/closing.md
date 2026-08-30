@@ -106,10 +106,11 @@
     `today: <今日の日付>`）。`main`へ`git checkout`し、今日の日次ブランチ
     （`daily/<今日の日付>`）を`git merge`でfast-forwardマージする。
     fast-forwardできない場合（`main`が日次ブランチの分岐後に進んでいる場合）
-    はmergeを中断し、その旨をユーザーに報告して判断を仰ぐ（強制マージ・
-    リベースを自動実行しない）。fast-forwardマージに成功した場合のみ、
-    `git push origin main`を実行する。マージ済みの日次ブランチを
-    `git branch -d`で削除する。
+    は`git checkout daily/<今日の日付>`で日次ブランチへ戻した上でmergeを
+    中断し、その旨をユーザーに報告して判断を仰ぐ（強制マージ・リベースを
+    自動実行せず、push・ブランチ削除も行わない）。fast-forwardマージに
+    成功した場合のみ、`git push origin main`を実行し、マージ済みの日次
+    ブランチを`git branch -d`で削除する。
 
 ## タスク注記
 
