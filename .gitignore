@@ -4,3 +4,4 @@
 desktop.ini
 docs/
 .worktrees/
+.claude/scheduled_tasks.lock
