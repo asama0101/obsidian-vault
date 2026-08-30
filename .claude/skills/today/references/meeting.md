@@ -1,6 +1,6 @@
 # today: 会議候補ごとの議事録処理
 
-`references/opening.md`・`references/schedule-sync.md`から、当日の「会議候補」
+`references/opening.md`・`references/check-in.md`から、当日の「会議候補」
 （参加者2名以上・終日でない予定）の一覧が定まった時点で呼び出される。この
 ファイルの手順を会議候補ごとに（開始時刻順に）適用し、各候補について以下の
 いずれかの結果を呼び出し元へ返す。
@@ -39,14 +39,18 @@
    自動マッチが1件に定まっていた場合はこの手順を省略し、その候補をそのまま
    `context`として採用する。
 6. **議事録ノートの生成**: `.claude/skills/meeting/SKILL.md`の手順に従い、
-   以下を渡してノートを生成する。
+   以下を渡してノートを生成する（`SKILL.md`は判定の上
+   `references/create-note.md`の手順を適用する）。
    - `context`: 手順4/5で定まったプロジェクトのwikilink、または「該当なし」
    - タイトル: この予定のタイトル
    - URL: ビデオ会議リンク（あれば）、無ければカレンダーイベント自体のURL
+   - 出席者: この予定の参加者一覧
+   - 開始時刻・終了時刻: この予定の開始・終了時刻
+   - description: この予定の説明欄
    - `calendar_event_id`: この予定の`id`
    - `calendar_series_id`: この予定の`recurringEventId`（Outlook/Teamsの場合は
      `seriesMasterId`）。単発予定の場合は渡さない（空欄のままにする）。
-   `meeting/SKILL.md`側の重複判定（手順3）で既存ノートが見つかりスキップ
+   `create-note.md`側の重複判定（手順3）で既存ノートが見つかりスキップ
    された場合は、結果を`既存`（そのノート名付き）として扱う。それ以外の
    場合は結果を`作成`（生成したノート名付き）として次の会議候補へ進む。
 
