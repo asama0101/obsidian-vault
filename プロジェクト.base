@@ -31,22 +31,33 @@ views:
     columnSize:
       note.status: 130
   - type: table
-    name: プロジェクト詳細
+    name: 関連タスク
     filters:
       and:
+        - type == "task"
         - file.hasLink(this.file)
     groupBy:
-      property: type
+      property: status
       direction: ASC
     order:
       - file.name
-      - type
       - status
       - due
-      - date
+      - check
       - context
     summaries:
       file.name: Count
     columnSize:
-      note.type: 110
       note.status: 130
+  - type: table
+    name: 関連議事録
+    filters:
+      and:
+        - type == "meeting"
+        - file.hasLink(this.file)
+    order:
+      - file.name
+      - date
+      - context
+    summaries:
+      file.name: Count

@@ -8,7 +8,7 @@
 
 ## 検索条件
 
-`30_Work/`配下の`type: task`ノートのうち、`status`が`3_done`ではなく、かつ`due`が今日以前または`check`が今日以前のもの。
+`30_Work/`配下の`type: task`ノートのうち、`status`が`4_done`・`5_cancelled`のいずれでもなく、かつ`due`が今日以前または`check`が今日以前のもの。
 
 ## 注記ルール
 
