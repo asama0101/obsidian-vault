@@ -4,7 +4,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
     groupBy:
       property: status
       direction: ASC
@@ -22,7 +23,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
     order:
       - file.name
       - due
@@ -38,7 +40,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
     groupBy:
       property: context
       direction: ASC
@@ -54,7 +57,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
     order:
       - file.name
       - check
@@ -70,7 +74,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
         - due <= today()
     order:
       - file.name
@@ -87,7 +92,8 @@ views:
     filters:
       and:
         - type == "task"
-        - status != "3_done"
+        - status != "4_done"
+        - status != "5_cancelled"
         - check <= today()
     order:
       - file.name
@@ -100,7 +106,7 @@ views:
     columnSize:
       note.check: 110
   - type: table
-    name: タスク：すべて（完了含む）
+    name: タスク：すべて（完了・中止含む）
     filters:
       and:
         - type == "task"
