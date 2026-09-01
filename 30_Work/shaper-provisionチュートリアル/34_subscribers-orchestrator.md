@@ -2,8 +2,8 @@
 type: task
 date: 2026-08-31
 status: 1_todo
-due: 2026-09-18
-check: 2026-09-18
+due: 2026-10-04
+check: 2026-10-04
 context: "[[shaper-provisionチュートリアル]]"
 ---
 
