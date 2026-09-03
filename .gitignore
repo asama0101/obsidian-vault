@@ -5,3 +5,4 @@ desktop.ini
 docs/
 .worktrees/
 .claude/scheduled_tasks.lock
+!.claude/settings.local.json
