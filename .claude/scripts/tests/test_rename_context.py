@@ -157,3 +157,176 @@ def test_other_lines_and_property_order_are_preserved(tmp_path):
         else:
             assert new_line == original_line
     assert len(lines) == len(expected)
+
+
+# --path モード（B-1: 空のcontextに後から値を付ける経路）
+
+
+def test_path_mode_rewrites_multiple_notes(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A, "ノートC": NOTE_OTHER})
+
+    result = run_rename(
+        vault,
+        "--path", "Cabinet/Notes/ノートA.md",
+        "--path", "Cabinet/Notes/ノートC.md",
+        "--new", "統合先",
+    )
+
+    assert result.returncode == 0, result.stderr
+    text_a = (vault / "Cabinet" / "Notes" / "ノートA.md").read_text(encoding="utf-8")
+    text_c = (vault / "Cabinet" / "Notes" / "ノートC.md").read_text(encoding="utf-8")
+    assert "context: 統合先\n" in text_a
+    assert "context: 統合先\n" in text_c
+    changed = set(result.stdout.strip().splitlines())
+    assert changed == {"Cabinet/Notes/ノートA.md", "Cabinet/Notes/ノートC.md"}
+
+
+def test_old_and_path_are_mutually_exclusive(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+
+    result = run_rename(
+        vault, "--old", "A社案件", "--path", "Cabinet/Notes/ノートA.md", "--new", "A社",
+    )
+
+    assert result.returncode == 2
+    after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    assert before == after
+
+
+def test_neither_old_nor_path_is_rejected(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+
+    result = run_rename(vault, "--new", "A社")
+
+    assert result.returncode == 2
+
+
+def test_path_mode_rejects_nonexistent_path_without_writing(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+
+    result = run_rename(
+        vault,
+        "--path", "Cabinet/Notes/存在しない.md",
+        "--path", "Cabinet/Notes/ノートA.md",
+        "--new", "A社",
+    )
+
+    assert result.returncode == 2
+    after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    assert before == after
+
+
+def test_path_mode_rejects_path_outside_notes_dir(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    outside = vault / "Cabinet" / "MEMORY.md"
+    outside.write_text("---\ncontext: X\n---\n", encoding="utf-8")
+
+    result = run_rename(vault, "--path", "Cabinet/MEMORY.md", "--new", "A社")
+
+    assert result.returncode == 2
+    assert outside.read_text(encoding="utf-8") == "---\ncontext: X\n---\n"
+
+
+def test_path_mode_dry_run_does_not_write(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+
+    result = run_rename(
+        vault, "--path", "Cabinet/Notes/ノートA.md", "--new", "A社", "--dry-run",
+    )
+
+    assert result.returncode == 0, result.stderr
+    after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    assert before == after
+    assert result.stdout.strip() == "Cabinet/Notes/ノートA.md"
+
+
+# C: 軽微な修正
+
+
+def test_missing_notes_dir_reports_reason_on_stderr(tmp_path):
+    result = run_rename(tmp_path, "--old", "A社案件", "--new", "A社")
+
+    assert result.returncode == 1
+    assert result.stderr.strip() != ""
+
+
+def test_no_match_reports_reason_on_stderr(tmp_path):
+    vault = make_vault(tmp_path, {"ノートC": NOTE_OTHER})
+
+    result = run_rename(vault, "--old", "存在しない値", "--new", "何か")
+
+    assert result.returncode == 1
+    assert "存在しない値" in result.stderr
+
+
+def test_new_value_with_colon_is_rejected(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+
+    result = run_rename(vault, "--old", "A社案件", "--new", "A社: 本店")
+
+    assert result.returncode == 2
+    after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    assert before == after
+
+
+def test_new_value_with_hash_is_rejected(tmp_path):
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+
+    result = run_rename(vault, "--old", "A社案件", "--new", "A社 #タグ")
+
+    assert result.returncode == 2
+    after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    assert before == after
+
+
+UNTERMINATED_NOTE = """---
+type: task
+date: 2026-09-04
+status: 1_todo
+
+## 完了条件
+
+context: A社案件
+"""
+
+
+def test_unterminated_frontmatter_is_not_touched(tmp_path):
+    """閉じの `---` が無い場合はfrontmatter無しとみなし、本文中のcontext:行に誤爆しない。"""
+    vault = make_vault(tmp_path, {"ノートD": UNTERMINATED_NOTE})
+    before = (vault / "Cabinet" / "Notes" / "ノートD.md").read_bytes()
+
+    result = run_rename(vault, "--old", "A社案件", "--new", "A社")
+
+    assert result.returncode == 1
+    after = (vault / "Cabinet" / "Notes" / "ノートD.md").read_bytes()
+    assert before == after
+
+
+NOTE_WITH_BODY_CONTEXT_LINE = """---
+type: task
+date: 2026-09-05
+status: 1_todo
+context: A社案件
+---
+
+## 作業ログ
+
+context: 本文中のこの行は書き換えない
+"""
+
+
+def test_body_context_line_is_not_rewritten(tmp_path):
+    """frontmatterが正しく閉じていれば、本文中の `context:` 行には触れない。"""
+    vault = make_vault(tmp_path, {"ノートE": NOTE_WITH_BODY_CONTEXT_LINE})
+
+    result = run_rename(vault, "--old", "A社案件", "--new", "A社")
+
+    assert result.returncode == 0, result.stderr
+    text = (vault / "Cabinet" / "Notes" / "ノートE.md").read_text(encoding="utf-8")
+    assert "context: A社\n" in text
+    assert "context: 本文中のこの行は書き換えない" in text
