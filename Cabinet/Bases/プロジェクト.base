@@ -1,0 +1,33 @@
+views:
+  - type: table
+    name: 進行中
+    filters:
+      and:
+        - type == "project"
+        - status == "1_active"
+    order:
+      - file.name
+      - due
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 関連ノート
+    filters:
+      and:
+        - file.hasLink(this.file)
+        - type != "project"
+    groupBy:
+      property: type
+      direction: ASC
+    order:
+      - file.name
+      - type
+      - status
+      - due
+      - date
+    summaries:
+      file.name: Count

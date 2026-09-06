@@ -1,0 +1,37 @@
+views:
+  - type: table
+    name: 期限超過
+    filters:
+      and:
+        - type == "task"
+        - status != "4_done"
+        - status != "5_cancelled"
+        - due < today()
+    order:
+      - file.name
+      - due
+      - status
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 全件棚卸し
+    filters:
+      and:
+        - type == "task"
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - due
+      - done
+      - context
+    summaries:
+      file.name: Count
+    columnSize:
+      note.status: 130
