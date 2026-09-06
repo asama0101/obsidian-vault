@@ -1,63 +1,33 @@
 views:
   - type: table
-    name: プロジェクト一覧
+    name: 進行中
     filters:
       and:
         - type == "project"
-        - status != "2_done"
-    groupBy:
-      property: status
-      direction: ASC
+        - status == "1_active"
     order:
       - file.name
-      - status
       - due
       - context
+    sort:
+      - property: due
+        direction: ASC
     columnSize:
-      note.status: 130
+      note.due: 110
   - type: table
-    name: プロジェクト：すべて（完了含む）
+    name: 関連ノート
     filters:
       and:
-        - type == "project"
-    groupBy:
-      property: status
-      direction: ASC
-    order:
-      - file.name
-      - status
-      - due
-      - context
-    columnSize:
-      note.status: 130
-  - type: table
-    name: 関連タスク
-    filters:
-      and:
-        - type == "task"
         - file.hasLink(this.file)
+        - type != "project"
     groupBy:
-      property: status
+      property: type
       direction: ASC
     order:
       - file.name
+      - type
       - status
       - due
-      - check
-      - context
-    summaries:
-      file.name: Count
-    columnSize:
-      note.status: 130
-  - type: table
-    name: 関連議事録
-    filters:
-      and:
-        - type == "meeting"
-        - file.hasLink(this.file)
-    order:
-      - file.name
       - date
-      - context
     summaries:
       file.name: Count
