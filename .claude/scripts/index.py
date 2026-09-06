@@ -55,7 +55,7 @@ def sanitize(value: str) -> str:
 
 def build_row(note: Path, vault_root: Path) -> dict[str, str]:
     """ノート1件を索引の1行に変換する。"""
-    props = parse_frontmatter(note.read_text(encoding="utf-8"))
+    props = parse_frontmatter(note.read_text(encoding="utf-8", errors="replace"))
     row = {column: sanitize(props.get(column, "")) for column in COLUMNS}
     row["path"] = note.relative_to(vault_root).as_posix()
     row["title"] = note.stem

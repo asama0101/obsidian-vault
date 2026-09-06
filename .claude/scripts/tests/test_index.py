@@ -110,3 +110,24 @@ def test_tab_in_value_is_sanitized(tmp_path):
 
 def test_missing_notes_dir_outputs_nothing(tmp_path):
     assert run_index(tmp_path) == ""
+
+
+def test_invalid_utf8_note_does_not_break_the_index(tmp_path):
+    write_note(tmp_path, "正常なノート.md", "---\ntype: task\n---\n")
+    notes = tmp_path / "Cabinet" / "Notes"
+    (notes / "壊れたノート.md").write_bytes(b"---\ntype: task\ncontext: \xff\xfe\n---\n")
+
+    result = rows(run_index(tmp_path))
+
+    assert len(result) == 2
+    assert result[0][1] == "task"
+
+
+def test_default_vault_root_points_at_the_vault():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("index", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert (module.default_vault_root() / "Cabinet" / "Templates").is_dir()
