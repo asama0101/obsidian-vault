@@ -101,7 +101,7 @@ date: 2026-09-07
 | type | frontmatter | 本文セクション |
 |---|---|---|
 | `task` | type, date, status, due, check, done, context | `## 完了条件` / `## 作業ログ` |
-| `project` | type, date, status, due, context | `## 概要` / `## 現状と次の一手` / `## 経緯` |
+| `project` | type, date, status, due, context | `## 概要` / `## 現状と次の一手` / `## 経緯` / `## 関連` |
 | `meeting` | type, date, status, context, calendar_event_id, calendar_series_id | `## 議題` / `## 資料` / `## メモ` / `## 決定事項` / `## アクション` |
 | `know-how` | type, date, context | `## 状況` / `## 手順` / `## 注意点` |
 
@@ -128,6 +128,8 @@ date: 2026-09-07
 `Cabinet/Templates/` に today / task / project / meeting / know-how の5本。type別の4本は最小骨とし、空欄の見出しを量産しない。必要になったセクションはAIがその都度追加する。`today.md` は第4章の4セクション構成の雛形。
 
 `meeting` のみ5セクションになるのは `## 資料` を持つため（第8章の資料紐付けを参照）。
+
+`project` の `## 関連` には `![[プロジェクト.base#関連ノート]]` を埋め込み、そのプロジェクトにリンクしているタスクと議事録を一覧する。第11章の埋め込み用ビューの受け先。
 
 ### 資料の紐付け
 
@@ -283,7 +285,7 @@ date: 2026-09-07
 
 | ファイル | ビュー |
 |---|---|
-| `プロジェクト.base` | 進行中一覧 / プロジェクトノート埋め込み用の関連タスク・関連議事録 |
+| `プロジェクト.base` | 進行中一覧 / 関連ノート（`file.hasLink(this.file)` で絞り `type` でグループ化） |
 | `タスク.base` | 期限超過 / 全件棚卸し |
 | `議事録.base` | 日付降順一覧 |
 | `ノウハウ.base` | コンテキスト別 |
