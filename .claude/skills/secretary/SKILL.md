@@ -118,7 +118,7 @@ bash .claude/scripts/close_day.sh
 2. 見つかったすべてのソースから当日 00:00–23:59（ローカルタイムゾーン）のイベントを取得してマージする。
 3. イベントの `id` を `calendar_event_id`、`recurringEventId` を `calendar_series_id` に対応させる。
 4. **取得できたソースと、失敗・未接続のソースを `## 今日の予定` の直下に必ず書く。** 書式は `（取得元: Google ✓ / Outlook 未接続）`。
-5. イベントの `attachments`（`title` と `fileUrl`）と `description` 内のURLを `## 資料` に `[表示名](URL)` 形式で書く。Google Drive のファイルは Drive MCP で表示名を解決する。解決できなければURLをそのまま書く。
+5. イベントの `attachments[]` は `title` を持つのでそれを表示名に使い `[title](fileUrl)` 形式で `## 資料` に書く。`description` 内の裸のURLは表示名が得られないのでURLをそのまま貼る。
 
 第4項は必須である。取得できていない事実が毎日 `Today.md` に現れることで、連携の欠落が放置されるのを防ぐ。
 
