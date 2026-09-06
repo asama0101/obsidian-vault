@@ -1,5 +1,4 @@
 ---
 date: {{date}}
-context: 
 ---
 
