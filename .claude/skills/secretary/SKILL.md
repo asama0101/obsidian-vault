@@ -56,7 +56,7 @@ bash .claude/scripts/close_day.sh
 2. `Cabinet/Templates/today.md` から `Today.md` を作り、`date` を今日にする。
 3. `Cabinet/MEMORY.md` を読む。
 4. カレンダーを取得する（下の「カレンダー」参照）。
-5. 各イベントを `index.py --type meeting` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。`## 資料` をイベントから埋める。
+5. 各イベントを `index.py --type meeting` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。イベントに `recurringEventId` が無い（単発イベントである）場合は `--set calendar_series_id=...` を渡さず、`calendar_series_id` は空のままにする。`## 資料` をイベントから埋める。
 6. 定例（`calendar_series_id` が一致）は前回の同シリーズ議事録から `## アクション` の未完分と `## 議題` を転記する。当日の会議が3件以上なら、各会議の過去議事録探索を Explore サブエージェントへ並列委任する。探索範囲は `Cabinet/Notes/` のみ。書き込みは自分が行う。
 7. `index.py --type task --status 1_todo,2_doing` を叩き、`due` が今日以前のもの、または `status` が `2_doing` のものを今日のタスクとする。
 8. `## 今日の予定` と `## 今日のタスク` を書く。

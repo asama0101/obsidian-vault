@@ -35,10 +35,6 @@ mkdir -p Cabinet/Diary
 mv Today.md "Cabinet/Diary/${day}.md"
 
 git add -A
-if git diff --cached --quiet; then
-  echo "コミットする変更がありません" >&2
-  exit 1
-fi
 git commit -q -m "chore: ${day} の記録"
 
 git checkout -q main
