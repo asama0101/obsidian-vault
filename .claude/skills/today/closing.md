@@ -1,24 +1,31 @@
 # 締めモード
 
-1. `Inbox/`に項目が残っていれば、各項目を`Cabinet/Templates/task.md`を
-   元に`type: task`のノートとして`Cabinet/Notes/`へ作成する。本文の
-   `## メモ`に元のInboxノートの内容をそのまま転記し、タイトルは
-   「要確認 - <元の内容の先頭部分>」とする。作成後、元のInboxノートを
-   削除する。これを`Inbox/`が空になるまで繰り返す。
-2. `Today.md`の`## ブリーフィング`を、今日実際に処理した件数（Inboxから
+1. `Inbox/`に項目が残っていれば、各項目を`Cabinet/Templates/review.md`を
+   元に`Review/`へノートとして書き出す。`## サマリー`に元のInboxノートの
+   内容を3行程度で要約し、`## 本文`に元の内容をそのまま転記し、`source`
+   プロパティは`closing`とする。`## 要判断`には「このInbox項目をどう
+   分類するか（type・context）」を書く。タイトルはWindows/NTFSの禁止文字
+   （`:`等）を避け、「要確認 - <元の内容の先頭部分>」とする。作成後、
+   元のInboxノートを削除する。これを`Inbox/`が空になるまで繰り返す。
+2. 今日の`Today.md`の内容（`## ブリーフィング`・`## メモ`）と、今日
+   `## 更新履歴`に新規行が追加された`Cabinet/Notes/`のノートを材料に、
+   「人・状況についての持続的文脈」と言えるものがあるか判断する（昇格
+   判断）。該当があれば`Cabinet/MEMORY.md`に1行追記する（無ければ何も
+   しない）。`Cabinet/MEMORY.md`が存在しなければ見出し付きで新規作成する。
+3. `Today.md`の`## ブリーフィング`を、今日実際に処理した件数（Inboxから
    構造化した件数・完了したタスク件数等）を含む実績サマリーに書き換える。
    `## メモ`セクションの内容はそのまま変更しない。
-3. `Today.md`のfrontmatterの`date`を読み取り、`mv Today.md
+4. `Today.md`のfrontmatterの`date`を読み取り、`mv Today.md
    Cabinet/Diary/<date>.md`（通常のファイル移動）でリネーム移動する。
    `Today.md`は開始モードが作成したまま日中はコミットされない未追跡ファイル
    なので、`git mv`は使えない。移動後に`git add Cabinet/Diary/<date>.md`を
    実行し、次のコミット手順で確実に拾われるようにする。
-4. 今日の変更を1つのコミットにまとめる。
-5. 日次ブランチを`main`へfast-forwardマージする。non-fast-forwardの場合は
+5. 今日の変更を1つのコミットにまとめる。
+6. 日次ブランチを`main`へfast-forwardマージする。non-fast-forwardの場合は
    マージを中断し、日次ブランチに復帰した上で人間に通知する。
-6. `main`をリモートへpushする。
-7. `PushNotification`でクリアデスク完了を通知する。
-8. 開始モードが仕掛けた`/loop`を停止する（`ScheduleWakeup`ツールを
+7. `main`をリモートへpushする。
+8. `PushNotification`でクリアデスク完了を通知する。
+9. 開始モードが仕掛けた`/loop`を停止する（`ScheduleWakeup`ツールを
    `stop: true`で呼ぶ）。締め後もループが回り続けて再度開始・締めを
    繰り返さないための必須手順。停止したことと、翌日は人間が`/today`を
    もう一度手動で起動する必要があることを人間に伝える。
