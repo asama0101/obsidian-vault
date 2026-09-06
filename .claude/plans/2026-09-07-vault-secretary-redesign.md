@@ -1977,7 +1977,7 @@ AIは人間が書いた文言を書き換えない。処理済みのメモ行は
 
 ```bash
 cd /home/asama/obsidian-vault
-grep -oE '\.claude/(scripts|skills|specs)/[A-Za-z0-9_./-]+|Cabinet/[A-Za-z]+' .claude/CLAUDE.md | sort -u | while read -r p; do
+grep -oE '\.claude/(scripts|skills|specs|commands)/[A-Za-z0-9_./-]+|Cabinet/[A-Za-z]+(\.md)?' .claude/CLAUDE.md | sort -u | while read -r p; do
   [ -e "$p" ] && echo "OK   $p" || echo "MISS $p"
 done
 echo "旧ゾーン名: $(grep -c 'Inbox\|Review/' .claude/CLAUDE.md || true)"
