@@ -52,6 +52,9 @@ vault/
 | date | ● | | ● | ● | ● | ● |
 | context | ○ | ○ | ○ | ○ | | |
 
+`meeting`型のノートは追加で`calendar_event_id`／`calendar_series_id`
+（カレンダー連携用）を持つ。上の表には含めない。
+
 ## プロパティ更新はClaude Code経由を正とする
 
 `status`/`check`をObsidianのプロパティパネルで直接書き換えることを

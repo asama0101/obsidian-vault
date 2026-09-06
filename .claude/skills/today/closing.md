@@ -8,10 +8,17 @@
 2. `Today.md`の`## ブリーフィング`を、今日実際に処理した件数（Inboxから
    構造化した件数・完了したタスク件数等）を含む実績サマリーに書き換える。
    `## メモ`セクションの内容はそのまま変更しない。
-3. `Today.md`のfrontmatterの`date`を読み取り、`git mv Today.md
-   Cabinet/Diary/<date>.md`でリネーム移動する。
+3. `Today.md`のfrontmatterの`date`を読み取り、`mv Today.md
+   Cabinet/Diary/<date>.md`（通常のファイル移動）でリネーム移動する。
+   `Today.md`は開始モードが作成したまま日中はコミットされない未追跡ファイル
+   なので、`git mv`は使えない。移動後に`git add Cabinet/Diary/<date>.md`を
+   実行し、次のコミット手順で確実に拾われるようにする。
 4. 今日の変更を1つのコミットにまとめる。
 5. 日次ブランチを`main`へfast-forwardマージする。non-fast-forwardの場合は
    マージを中断し、日次ブランチに復帰した上で人間に通知する。
 6. `main`をリモートへpushする。
 7. `PushNotification`でクリアデスク完了を通知する。
+8. 開始モードが仕掛けた`/loop`を停止する（`ScheduleWakeup`ツールを
+   `stop: true`で呼ぶ）。締め後もループが回り続けて再度開始・締めを
+   繰り返さないための必須手順。停止したことと、翌日は人間が`/today`を
+   もう一度手動で起動する必要があることを人間に伝える。

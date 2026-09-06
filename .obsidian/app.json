@@ -4,8 +4,8 @@
   "alwaysUpdateLinks": true,
   "openBehavior": "",
   "newFileLocation": "folder",
-  "newFileFolderPath": "10_Inbox",
-  "attachmentFolderPath": "90_Asset",
+  "newFileFolderPath": "Inbox",
+  "attachmentFolderPath": "Cabinet/Assets",
   "readableLineLength": false,
   "showInlineTitle": false,
   "showUnsupportedFiles": true
