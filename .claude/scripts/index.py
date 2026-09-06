@@ -22,6 +22,8 @@ COLUMNS = [
     "date",
     "title",
     "mtime",
+    "calendar_event_id",
+    "calendar_series_id",
 ]
 
 

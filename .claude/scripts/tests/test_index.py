@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "index.py"
-COLUMN_COUNT = 10
+COLUMN_COUNT = 12
 
 
 def write_note(vault: Path, name: str, body: str) -> Path:
@@ -47,7 +47,8 @@ def test_columns_are_in_fixed_order(tmp_path):
         tmp_path,
         "見積書の作成.md",
         "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-10\ncheck: 2026-09-08\n"
-        "done: \ncontext: A社\ndate: 2026-09-07\n---\n\n## 完了条件\n",
+        "done: \ncontext: A社\ndate: 2026-09-07\n"
+        "calendar_event_id: evt-123\ncalendar_series_id: series-456\n---\n\n## 完了条件\n",
     )
 
     row = rows(run_index(tmp_path))[0]
@@ -62,6 +63,8 @@ def test_columns_are_in_fixed_order(tmp_path):
     assert row[7] == "2026-09-07"
     assert row[8] == "見積書の作成"
     assert row[9].startswith("20")
+    assert row[10] == "evt-123"
+    assert row[11] == "series-456"
 
 
 def test_empty_property_becomes_empty_string(tmp_path):

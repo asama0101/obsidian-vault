@@ -96,6 +96,7 @@ def test_fails_when_not_on_a_daily_branch(tmp_path):
 def test_fails_when_main_cannot_fast_forward(tmp_path):
     repo = make_repo(tmp_path)
     main_before = git(repo, "rev-parse", "main")
+    daily_head_before = git(repo, "rev-parse", "daily/2026-09-07")
     git(repo, "stash", "-q", "-u")
     git(repo, "checkout", "-q", "main")
     (repo / "別の変更.md").write_text("main側の変更\n", encoding="utf-8")
@@ -111,6 +112,21 @@ def test_fails_when_main_cannot_fast_forward(tmp_path):
     assert main_before != main_after
     assert git(repo, "rev-parse", "main") == main_after
     assert git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "daily/2026-09-07"
+    # 締め失敗時は作業ツリーを締め前の状態に復元する（/loopの二重化を防ぐため）。
+    assert (repo / "Today.md").exists()
+    assert not (repo / "Cabinet" / "Diary" / "2026-09-07.md").exists()
+    assert git(repo, "rev-parse", "daily/2026-09-07") == daily_head_before
+
+
+def test_fails_when_diary_file_already_exists(tmp_path):
+    repo = make_repo(tmp_path)
+    (repo / "Cabinet" / "Diary" / "2026-09-07.md").write_text("既存の記録\n", encoding="utf-8")
+
+    result = run_close(repo)
+
+    assert result.returncode == 1
+    assert (repo / "Today.md").exists()
+    assert (repo / "Cabinet" / "Diary" / "2026-09-07.md").read_text(encoding="utf-8") == "既存の記録\n"
 
 
 def test_fails_when_there_is_nothing_to_commit(tmp_path):

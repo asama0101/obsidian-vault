@@ -24,6 +24,13 @@ if [[ "$branch" != daily/* ]]; then
   exit 1
 fi
 
+if [[ -e "Cabinet/Diary/${day}.md" ]]; then
+  echo "Cabinet/Diary/${day}.md が既に存在します。上書きしません。" >&2
+  exit 1
+fi
+
+head_before="$(git rev-parse HEAD)"
+
 mkdir -p Cabinet/Diary
 mv Today.md "Cabinet/Diary/${day}.md"
 
@@ -37,6 +44,8 @@ git commit -q -m "chore: ${day} の記録"
 git checkout -q main
 if ! git merge --ff-only -q "$branch"; then
   git checkout -q "$branch"
+  git reset --soft "$head_before"
+  mv "Cabinet/Diary/${day}.md" Today.md
   echo "main へ fast-forward マージできませんでした。手動で解決してください。" >&2
   exit 1
 fi
