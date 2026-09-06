@@ -110,3 +110,21 @@ def test_fails_when_main_cannot_fast_forward(tmp_path):
     assert result.returncode == 1
     assert main_before != main_after
     assert git(repo, "rev-parse", "main") == main_after
+    assert git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "daily/2026-09-07"
+
+
+def test_fails_when_there_is_nothing_to_commit(tmp_path):
+    repo = make_repo(tmp_path)
+    # Today.md は未追跡のままにし、Diary側に同内容のファイルを先にコミットしておく。
+    # mv 後に git add -A しても staged な差分が生じない状態を作る。
+    (repo / "Cabinet" / "Diary" / "2026-09-07.md").write_text(
+        (repo / "Today.md").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    git(repo, "add", "Cabinet/Diary/2026-09-07.md")
+    git(repo, "commit", "-q", "-m", "Diary 側を先に用意")
+    head_before = git(repo, "rev-parse", "HEAD")
+
+    result = run_close(repo)
+
+    assert result.returncode == 1
+    assert git(repo, "rev-parse", "HEAD") == head_before
