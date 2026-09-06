@@ -81,7 +81,7 @@ AIは人間が書いた文言を書き換えない。処理済みのメモ行は
 
 ## プロパティ更新はClaude Code経由を正とする
 
-`status` / `due` / `done` をObsidianのプロパティパネルで直接書き換えることを前提にしない。自然言語の指示を受けたら、該当ノートのfrontmatterを直接編集する。
+`status` / `due` / `done` / `context` をObsidianのプロパティパネルで直接書き換えることを前提にしない。自然言語の指示を受けたら、該当ノートのfrontmatterを直接編集する。`context` の値を複数ノートにまたがって付け替える場合は `.claude/scripts/rename_context.py` を使う。`context` は繰り返し現れるまとまりに付ける値であり、単発のものは空にする。
 
 ## 通知は行わない
 
@@ -103,6 +103,7 @@ AIは人間が書いた文言を書き換えない。処理済みのメモ行は
 
 - `.claude/scripts/index.py`: ノートの索引をTSVで出力する。`Cabinet/Notes/` の一覧を読む唯一の経路。
 - `.claude/scripts/new_note.py`: テンプレートからノートを1件作る。
+- `.claude/scripts/rename_context.py`: `context` の値を一括で付け替える。
 - `.claude/scripts/close_day.sh`: 締めのgit操作。
 
 テストは `python3 -m pytest .claude/scripts/tests/` で実行する。
