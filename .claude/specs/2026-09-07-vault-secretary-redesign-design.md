@@ -152,7 +152,7 @@ date: 2026-09-07
 
 `## 資料` には2つの記法が混在する。
 
-- カレンダー・Drive由来の外部資料: `- [見積書_A社](https://drive.google.com/...)`
+- カレンダー由来の外部資料: `- [見積書_A社](https://drive.google.com/...)`
 - vault内の資料: `- [[見積書_A社.pdf]]`（人間がObsidian上で貼るか、`## メモ` で指示する）
 
 ## 6. 実行機構の割り当て
@@ -269,8 +269,10 @@ MEMORY への追記は `- <内容>（YYYY-MM-DD 記録）` の1行形式とす�
 3. イベントの `id` を `calendar_event_id`、`recurringEventId` を `calendar_series_id` に対応させる。
 4. **取得できたソースと、失敗・未接続のソースを `## 今日の予定` の直下に必ず明記する。**
 5. 既存の meeting ノートに対応するイベントがカレンダーから消えていた場合、そのノートの `status` を `3_中止` にする。
-6. **資料をイベントから抽出し、`## 資料` に貼る。** 対象はイベントの `attachments[]`（`title` と `fileUrl`）と `description` 内のURL。Google Drive のファイルはDrive MCPで表示名を解決し、`[表示名](URL)` 形式で書く。解決できない場合はURLをそのまま貼る。
-7. `settings.local.json` にカレンダーMCPツールとDrive MCPツールの事前許可を追加する。無人ループがパーミッションプロンプトで停止しないようにするため。
+6. **資料をイベントから抽出し、`## 資料` に貼る。** 対象はイベントの `attachments[]`（`title` と `fileUrl`）と `description` 内のURL。`attachments[]` は `title` を持つのでそれを表示名に使い、`[title](fileUrl)` 形式で書く。`description` 内の裸のURLは表示名が得られないのでURLをそのまま貼る。
+7. `settings.local.json` にカレンダーMCPツールの事前許可を追加する。無人ループがパーミッションプロンプトで停止しないようにするため。
+
+**Google Drive MCP には依存しない。** この環境の Drive MCP は未認証で、`authenticate` と `complete_authentication` しか公開しておらず、ファイル参照系のツールは OAuth 完了後にしか現れない。認証状態に依存する手順を秘書ループに置くと、未認証のまま無言で失敗する経路が生まれる。カレンダーの `attachments[]` が表示名を直接持つため、Drive を経由する必要はもともと無い。
 
 第4項は、現行のカレンダー連携が「Google Calendarで取得する」の一文だけで未実装のまま放置されていた失敗を再発させないための担保である。取得できていない事実が毎日 `Today.md` に表示される。
 
