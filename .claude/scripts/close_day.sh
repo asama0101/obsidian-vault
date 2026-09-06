@@ -31,17 +31,28 @@ fi
 
 head_before="$(git rev-parse HEAD)"
 
+# 締めのコミットを取り消し、Today.md を元の位置へ戻す。
+# 作業ツリーを破棄する操作（git reset --hard 等）は使わない。
+restore_worktree() {
+  git checkout -q "$branch"
+  git reset --soft "$head_before"
+  mv "Cabinet/Diary/${day}.md" Today.md
+}
+
 mkdir -p Cabinet/Diary
 mv Today.md "Cabinet/Diary/${day}.md"
 
 git add -A
 git commit -q -m "chore: ${day} の記録"
 
-git checkout -q main
+if ! git checkout -q main; then
+  restore_worktree
+  echo "main へ切り替えられませんでした。手動で解決してください。" >&2
+  exit 1
+fi
+
 if ! git merge --ff-only -q "$branch"; then
-  git checkout -q "$branch"
-  git reset --soft "$head_before"
-  mv "Cabinet/Diary/${day}.md" Today.md
+  restore_worktree
   echo "main へ fast-forward マージできませんでした。手動で解決してください。" >&2
   exit 1
 fi
@@ -51,5 +62,11 @@ if ! git remote get-url origin >/dev/null 2>&1; then
   exit 0
 fi
 
-git push -q origin main
+# push 失敗時は作業ツリーを復元しない。main へのマージは既に済んでおり、
+# 巻き戻すとローカルの履歴だけが失われるため。人間がリモートと解決する。
+if ! git push -q origin main; then
+  echo "push に失敗した。git pull --rebase origin main で解決してから git push origin main を実行すること。" >&2
+  exit 1
+fi
+
 echo "締め完了: Cabinet/Diary/${day}.md を push しました"

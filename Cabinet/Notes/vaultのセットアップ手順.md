@@ -13,7 +13,8 @@ context: vault運用
 ### 前提
 
 - Obsidian **1.11 以降**を使う。Basesがコア機能として使えるため
-- `secretary`スキルの締め手順（`.claude/skills/secretary/closing.md`）が日次ブランチを`main`へマージ後に`git push origin main`するため、リモートリポジトリ（`origin`）を設定しておく。設定しない場合は`git push`の手順だけ失敗する（マージ自体は成功する）
+- `secretary`スキルの締め手順（`.claude/scripts/close_day.sh`）が日次ブランチを`main`へマージ後に`git push origin main`するため、リモートリポジトリ（`origin`）を設定しておく。設定しない場合は`push`だけスキップされる（マージ自体は成功する）
+- テストを走らせる場合はPyYAMLが要る（`.claude/scripts/tests/test_bases.py`が`.base`のYAMLを解析するため）
 
 ### 1. Gitリポジトリを初期化する
 
@@ -35,13 +36,14 @@ context: vault運用
 
 ### 2. フォルダを作成する
 
-vaultルート直下に`Cabinet/`を作り、`Cabinet/`配下に`Diary/`・`Notes/`・`Documents/`・`Assets/`・`Templates/`を作成する。
+vaultルート直下に`Documents/`と`Cabinet/`を作り、`Cabinet/`配下に`Diary/`・`Notes/`・`Assets/`・`Templates/`・`Bases/`を作成する。
 
+- `Documents/`だけがvaultルート直下に来る。人間がドラッグ&ドロップで投入するゾーンであり、「人間は直接編集しない」と定義した`Cabinet/`の中にあるべきでないため
 - `Cabinet/MEMORY.md`を作成する。初期内容は見出し`# MEMORY`のみでよい
 
-### 3. `.base`ファイルをvaultルート直下に配置する
+### 3. `.base`ファイルを`Cabinet/Bases/`に配置する
 
-- `タスク.base`・`プロジェクト.base`・`議事録.base`・`ノウハウ.base`をルートディレクトリに配置する
+- `タスク.base`・`プロジェクト.base`・`議事録.base`・`ノウハウ.base`を`Cabinet/Bases/`に配置する。日常では見ず、棚卸しや検索のときだけたどる棚なのでvault直下には置かない
 
 ### 4. `Cabinet/Templates`にテンプレートファイルを配置する
 
@@ -50,6 +52,7 @@ vaultルート直下に`Cabinet/`を作り、`Cabinet/`配下に`Diary/`・`Note
 - `設定 → コアプラグイン → デイリーノート`を**無効化**する。`Today.md`（`secretary`スキルが管理）が同じ役割を担うため、コアプラグイン側が別途デイリーノートを作らないようにする
 - `設定 → ファイルとリンク → 起動時に開くファイル`を`最後に開いたファイル`に設定する
 - `設定 → ファイルとリンク → 新規添付ファイルの保存先`を`Cabinet/Assets`に設定する
+- `設定 → ファイルとリンク → 新規ノートの作成場所`を`Documents`に設定する。廃止済みの`Inbox`等を指したままにすると、Obsidianで新規ノートを1枚作った瞬間に誰も読まない第2の書き込み口が復活する
 - `Today.md`をブックマーク（ピン留め）し、いつでもすぐ開けるようにする
 
 ### 5. ショートカットキーを割り当てる
@@ -64,6 +67,8 @@ vaultルート直下に`Cabinet/`を作り、`Cabinet/`配下に`Diary/`・`Note
 - `CLAUDE.md`を`.claude/`配下に配置する
 - `.claude/commands/`に`today.md` / `intake.md` / `close.md`を配置する
 - `.claude/skills/secretary/SKILL.md`を配置する
+- `.claude/scripts/`に`index.py` / `new_note.py` / `close_day.sh`を配置する。3本とも実行可能にしておく
+- `.claude/settings.local.json`にスクリプトとカレンダーMCPの事前許可を置く。無人ループがパーミッションプロンプトで止まらないようにするため
 - （任意）Google CalendarまたはOutlookのMCP連携を設定する
 
 ### 7. 運用を開始する

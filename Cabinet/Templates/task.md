@@ -3,7 +3,6 @@ type: task
 date:
 status: 1_todo
 due:
-check:
 done:
 context:
 ---

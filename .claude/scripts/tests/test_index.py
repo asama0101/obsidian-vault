@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "index.py"
-COLUMN_COUNT = 12
+COLUMN_COUNT = 11
 
 
 def write_note(vault: Path, name: str, body: str) -> Path:
@@ -46,7 +46,7 @@ def test_columns_are_in_fixed_order(tmp_path):
     write_note(
         tmp_path,
         "見積書の作成.md",
-        "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-10\ncheck: 2026-09-08\n"
+        "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-10\n"
         "done: \ncontext: A社\ndate: 2026-09-07\n"
         "calendar_event_id: evt-123\ncalendar_series_id: series-456\n---\n\n## 完了条件\n",
     )
@@ -57,14 +57,13 @@ def test_columns_are_in_fixed_order(tmp_path):
     assert row[1] == "task"
     assert row[2] == "1_todo"
     assert row[3] == "2026-09-10"
-    assert row[4] == "2026-09-08"
-    assert row[5] == ""
-    assert row[6] == "A社"
-    assert row[7] == "2026-09-07"
-    assert row[8] == "見積書の作成"
-    assert row[9].startswith("20")
-    assert row[10] == "evt-123"
-    assert row[11] == "series-456"
+    assert row[4] == ""
+    assert row[5] == "A社"
+    assert row[6] == "2026-09-07"
+    assert row[7] == "見積書の作成"
+    assert row[8].startswith("20")
+    assert row[9] == "evt-123"
+    assert row[10] == "series-456"
 
 
 def test_empty_property_becomes_empty_string(tmp_path):
@@ -82,7 +81,7 @@ def test_note_without_frontmatter_is_still_listed(tmp_path):
 
     assert len(result) == 1
     assert result[0][1] == ""
-    assert result[0][8] == "メモ書き"
+    assert result[0][7] == "メモ書き"
 
 
 def test_unclosed_frontmatter_is_treated_as_absent(tmp_path):
@@ -99,7 +98,7 @@ def test_quoted_values_are_unquoted(tmp_path):
     row = rows(run_index(tmp_path))[0]
 
     assert row[1] == "task"
-    assert row[6] == "A社"
+    assert row[5] == "A社"
 
 
 def test_tab_in_value_is_sanitized(tmp_path):
@@ -108,7 +107,7 @@ def test_tab_in_value_is_sanitized(tmp_path):
     row = rows(run_index(tmp_path))[0]
 
     assert len(row) == COLUMN_COUNT
-    assert row[6] == "A社 B社"
+    assert row[5] == "A社 B社"
 
 
 def test_missing_notes_dir_outputs_nothing(tmp_path):
@@ -143,7 +142,7 @@ def test_filter_by_type(tmp_path):
     result = rows(run_index(tmp_path, "--type", "task"))
 
     assert len(result) == 1
-    assert result[0][8] == "見積書の作成"
+    assert result[0][7] == "見積書の作成"
 
 
 def test_status_accepts_comma_separated_values_as_or(tmp_path):
@@ -153,7 +152,7 @@ def test_status_accepts_comma_separated_values_as_or(tmp_path):
 
     result = rows(run_index(tmp_path, "--status", "1_todo,2_doing"))
 
-    assert sorted(row[8] for row in result) == ["A", "B"]
+    assert sorted(row[7] for row in result) == ["A", "B"]
 
 
 def test_type_and_status_combine_as_and(tmp_path):
@@ -162,22 +161,36 @@ def test_type_and_status_combine_as_and(tmp_path):
 
     result = rows(run_index(tmp_path, "--type", "task", "--status", "1_todo"))
 
-    assert [row[8] for row in result] == ["A"]
+    assert [row[7] for row in result] == ["A"]
 
 
-def test_due_before_includes_the_boundary_date(tmp_path):
-    write_note(tmp_path, "A.md", "---\ntype: task\ndue: 2026-09-07\n---\n")
-    write_note(tmp_path, "B.md", "---\ntype: task\ndue: 2026-09-08\n---\n")
+def test_date_matches_only_the_exact_date(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: meeting\ndate: 2026-09-07\n---\n")
 
-    result = rows(run_index(tmp_path, "--due-before", "2026-09-07"))
+    result = rows(run_index(tmp_path, "--date", "2026-09-07"))
 
-    assert [row[8] for row in result] == ["A"]
+    assert [row[7] for row in result] == ["A"]
 
 
-def test_due_before_excludes_notes_without_due(tmp_path):
-    write_note(tmp_path, "A.md", "---\ntype: task\ndue:\n---\n")
+def test_date_excludes_other_dates(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: meeting\ndate: 2026-09-06\n---\n")
 
-    assert run_index(tmp_path, "--due-before", "2026-12-31") == ""
+    assert run_index(tmp_path, "--date", "2026-09-07") == ""
+
+
+def test_date_excludes_notes_without_date(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: meeting\ndate:\n---\n")
+
+    assert run_index(tmp_path, "--date", "2026-09-07") == ""
+
+
+def test_date_combines_with_type_as_and(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: meeting\ndate: 2026-09-07\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\ndate: 2026-09-07\n---\n")
+
+    result = rows(run_index(tmp_path, "--type", "meeting", "--date", "2026-09-07"))
+
+    assert [row[7] for row in result] == ["A"]
 
 
 def test_updated_on_matches_the_date_part_of_mtime(tmp_path):
@@ -186,7 +199,7 @@ def test_updated_on_matches_the_date_part_of_mtime(tmp_path):
 
     result = rows(run_index(tmp_path, "--updated-on", today))
 
-    assert [row[8] for row in result] == ["A"]
+    assert [row[7] for row in result] == ["A"]
 
 
 def test_updated_on_excludes_other_dates(tmp_path):

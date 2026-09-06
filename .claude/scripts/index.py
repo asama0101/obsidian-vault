@@ -16,7 +16,6 @@ COLUMNS = [
     "type",
     "status",
     "due",
-    "check",
     "done",
     "context",
     "date",
@@ -86,7 +85,7 @@ def matches(row: dict[str, str], args: argparse.Namespace) -> bool:
         return False
     if args.status and row["status"] not in args.status:
         return False
-    if args.due_before and (not row["due"] or row["due"] > args.due_before):
+    if args.date and row["date"] != args.date:
         return False
     if args.updated_on and not row["mtime"].startswith(args.updated_on):
         return False
@@ -103,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--vault-root", type=Path, default=default_vault_root())
     parser.add_argument("--type", type=csv_list, default=[], help="typeで絞る（カンマ区切りでOR）")
     parser.add_argument("--status", type=csv_list, default=[], help="statusで絞る（カンマ区切りでOR）")
-    parser.add_argument("--due-before", help="dueがこの日付以前のものに絞る")
+    parser.add_argument("--date", help="frontmatterのdateがこの日付と完全一致するものに絞る")
     parser.add_argument("--updated-on", help="この日付に更新されたものに絞る")
     parser.add_argument("--contexts", action="store_true", help="既存のcontext値を一覧する")
     args = parser.parse_args(argv)

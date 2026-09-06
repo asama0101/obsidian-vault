@@ -1,7 +1,6 @@
 {
   "types": {
     "date": "date",
-    "due": "date",
-    "check": "date"
+    "due": "date"
   }
 }
