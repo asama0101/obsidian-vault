@@ -1295,7 +1295,7 @@ cd /home/asama/obsidian-vault
 python3 -m pytest .claude/scripts/tests/test_templates.py -v
 ```
 
-Expected: 14 passed。
+Expected: 15 passed。
 
 - [ ] **Step 5: コミットする**
 
@@ -1552,7 +1552,7 @@ cd /home/asama/obsidian-vault
 python3 -m pytest .claude/scripts/tests/test_bases.py -v
 ```
 
-Expected: 18 passed。
+Expected: 15 passed。
 
 - [ ] **Step 5: 全テストを通す**
 
@@ -1730,10 +1730,10 @@ Expected: すべて `OK`。`MISS` が1件でもあれば実装を止めて報告
 
 ```bash
 cd /home/asama/obsidian-vault
-grep -rn 'skills/today\|skills/intake\|skills/setup\|opening\.md\|update\.md\|closing\.md' .claude/ README.md || echo "参照なし"
+grep -rn 'skills/today\|skills/intake\|skills/setup\|opening\.md\|update\.md\|closing\.md' .claude/skills .claude/commands README.md || echo "参照なし"
 ```
 
-Expected: `参照なし`（`.claude/specs/` 内の設計書は現行構成の引用として `update.md:33` 等に言及するため、ヒットしてよいのは `.claude/specs/` 配下のみ）。
+Expected: `参照なし`。`.claude/specs/` と `.claude/plans/` は旧構成を引用として記述するため検査対象から外す。
 
 - [ ] **Step 5: コミットする**
 
@@ -1980,10 +1980,11 @@ cd /home/asama/obsidian-vault
 grep -oE '\.claude/(scripts|skills|specs)/[A-Za-z0-9_./-]+|Cabinet/[A-Za-z]+' .claude/CLAUDE.md | sort -u | while read -r p; do
   [ -e "$p" ] && echo "OK   $p" || echo "MISS $p"
 done
-grep -c 'Inbox\|Review\|更新履歴' .claude/CLAUDE.md || true
+echo "旧ゾーン名: $(grep -c 'Inbox\|Review/' .claude/CLAUDE.md || true)"
+echo "更新履歴の言及: $(grep -c '更新履歴' .claude/CLAUDE.md || true)"
 ```
 
-Expected: パスはすべて `OK`。旧ゾーン名のヒット数は、`## 更新履歴 を持たない` の見出し1行のみ（`grep -c` が 1）。
+Expected: パスはすべて `OK`。`旧ゾーン名: 0`。`更新履歴の言及: 2`（「更新履歴を持たない」の見出しと本文の2行のみ。この2行は仕様を否定文で述べるものであり、旧構成の残存ではない）。
 
 - [ ] **Step 4: コミットする**
 
