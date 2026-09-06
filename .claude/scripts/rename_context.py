@@ -23,7 +23,8 @@ AIがcontextの新しい値を自分で決めてノートを作ったあと、�
 `context:` から始まる行があっても誤爆しないため）。
 
 `--path` 指定時は、書き込み前に全パスを検証する。1件でも無効なパスがあれば
-1件も書き換えない（部分適用を避けるため）。
+1件も書き換えない（部分適用を避けるため）。同じパスを複数回指定しても、
+書き込み・出力とも1回だけになるよう重複を除去する。
 
 終了コードは 0=成功、1=対象が1件も無い、2=入力エラー。
 """
@@ -96,8 +97,12 @@ def resolve_path_targets(
     書き込み側で再度読み直さずに済むようにする。
     """
     targets: list[tuple[Path, list[str], int]] = []
+    seen: set[Path] = set()
     for rel in paths:
         candidate = (vault / rel).resolve()
+        if candidate in seen:
+            continue
+        seen.add(candidate)
         try:
             candidate.relative_to(notes_dir)
         except ValueError:

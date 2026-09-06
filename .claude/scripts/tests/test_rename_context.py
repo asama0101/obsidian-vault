@@ -203,19 +203,21 @@ def test_neither_old_nor_path_is_rejected(tmp_path):
 
 
 def test_path_mode_rejects_nonexistent_path_without_writing(tmp_path):
+    """有効パスを先、無効パスを後に置く。逐次書き込み実装なら1件目が書かれてしまうため、
+    この順序でないと「1件も書き換えない」という部分適用防止の主張をテストが固定できない。"""
     vault = make_vault(tmp_path, {"ノートA": NOTE_A})
     before = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
 
     result = run_rename(
         vault,
-        "--path", "Cabinet/Notes/存在しない.md",
         "--path", "Cabinet/Notes/ノートA.md",
+        "--path", "Cabinet/Notes/存在しない.md",
         "--new", "A社",
     )
 
     assert result.returncode == 2
     after = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
-    assert before == after
+    assert before == after, "有効パス（1件目）が部分的に書き換えられている"
 
 
 def test_path_mode_rejects_path_outside_notes_dir(tmp_path):
@@ -330,3 +332,38 @@ def test_body_context_line_is_not_rewritten(tmp_path):
     text = (vault / "Cabinet" / "Notes" / "ノートE.md").read_text(encoding="utf-8")
     assert "context: A社\n" in text
     assert "context: 本文中のこの行は書き換えない" in text
+
+
+def test_path_mode_deduplicates_same_path(tmp_path):
+    """同じパスを2回指定しても、書き込み・出力とも1回だけになる。"""
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+
+    result = run_rename(
+        vault,
+        "--path", "Cabinet/Notes/ノートA.md",
+        "--path", "Cabinet/Notes/ノートA.md",
+        "--new", "A社",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip().splitlines() == ["Cabinet/Notes/ノートA.md"]
+
+
+def test_path_mode_rejects_note_without_context_field(tmp_path):
+    """`--path` 先のfrontmatterに `context` 行が無ければ1件も書き換えない。"""
+    vault = make_vault(tmp_path, {"ノートA": NOTE_A})
+    no_context_note = vault / "Cabinet" / "Notes" / "contextなし.md"
+    no_context_note.write_text("---\ntype: task\ndate: 2026-09-06\n---\n\n## 完了条件\n", encoding="utf-8")
+    before_a = (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes()
+    before_no_context = no_context_note.read_bytes()
+
+    result = run_rename(
+        vault,
+        "--path", "Cabinet/Notes/ノートA.md",
+        "--path", "Cabinet/Notes/contextなし.md",
+        "--new", "A社",
+    )
+
+    assert result.returncode == 2
+    assert (vault / "Cabinet" / "Notes" / "ノートA.md").read_bytes() == before_a
+    assert no_context_note.read_bytes() == before_no_context
