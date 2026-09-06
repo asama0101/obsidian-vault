@@ -131,3 +131,73 @@ def test_default_vault_root_points_at_the_vault():
     spec.loader.exec_module(module)
 
     assert (module.default_vault_root() / "Cabinet" / "Templates").is_dir()
+
+
+def test_filter_by_type(tmp_path):
+    write_note(tmp_path, "見積書の作成.md", "---\ntype: task\n---\n")
+    write_note(tmp_path, "定例.md", "---\ntype: meeting\n---\n")
+
+    result = rows(run_index(tmp_path, "--type", "task"))
+
+    assert len(result) == 1
+    assert result[0][8] == "見積書の作成"
+
+
+def test_status_accepts_comma_separated_values_as_or(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\nstatus: 2_doing\n---\n")
+    write_note(tmp_path, "C.md", "---\ntype: task\nstatus: 4_done\n---\n")
+
+    result = rows(run_index(tmp_path, "--status", "1_todo,2_doing"))
+
+    assert sorted(row[8] for row in result) == ["A", "B"]
+
+
+def test_type_and_status_combine_as_and(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: project\nstatus: 1_todo\n---\n")
+
+    result = rows(run_index(tmp_path, "--type", "task", "--status", "1_todo"))
+
+    assert [row[8] for row in result] == ["A"]
+
+
+def test_due_before_includes_the_boundary_date(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\ndue: 2026-09-07\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\ndue: 2026-09-08\n---\n")
+
+    result = rows(run_index(tmp_path, "--due-before", "2026-09-07"))
+
+    assert [row[8] for row in result] == ["A"]
+
+
+def test_due_before_excludes_notes_without_due(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\ndue:\n---\n")
+
+    assert run_index(tmp_path, "--due-before", "2026-12-31") == ""
+
+
+def test_updated_on_matches_the_date_part_of_mtime(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\n---\n")
+    today = __import__("datetime").date.today().isoformat()
+
+    result = rows(run_index(tmp_path, "--updated-on", today))
+
+    assert [row[8] for row in result] == ["A"]
+
+
+def test_updated_on_excludes_other_dates(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\n---\n")
+
+    assert run_index(tmp_path, "--updated-on", "1999-01-01") == ""
+
+
+def test_contexts_lists_unique_values_sorted(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\ncontext: B社\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\ncontext: A社\n---\n")
+    write_note(tmp_path, "C.md", "---\ntype: task\ncontext: A社\n---\n")
+    write_note(tmp_path, "D.md", "---\ntype: task\ncontext:\n---\n")
+
+    output = run_index(tmp_path, "--contexts")
+
+    assert output.splitlines() == ["A社", "B社"]

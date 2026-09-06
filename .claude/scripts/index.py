@@ -73,6 +73,24 @@ def collect(vault_root: Path) -> list[dict[str, str]]:
     return [build_row(note, vault_root) for note in sorted(notes_dir.glob("*.md"))]
 
 
+def csv_list(value: str) -> list[str]:
+    """カンマ区切りの文字列を空要素を除いたリストにする。"""
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def matches(row: dict[str, str], args: argparse.Namespace) -> bool:
+    """索引の1行が絞り込み条件をすべて満たすかを判定する。"""
+    if args.type and row["type"] not in args.type:
+        return False
+    if args.status and row["status"] not in args.status:
+        return False
+    if args.due_before and (not row["due"] or row["due"] > args.due_before):
+        return False
+    if args.updated_on and not row["mtime"].startswith(args.updated_on):
+        return False
+    return True
+
+
 def default_vault_root() -> Path:
     """このスクリプトの位置からvaultのルートを求める。"""
     return Path(__file__).resolve().parents[2]
@@ -81,10 +99,23 @@ def default_vault_root() -> Path:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="ノートの索引をTSVで出力する")
     parser.add_argument("--vault-root", type=Path, default=default_vault_root())
+    parser.add_argument("--type", type=csv_list, default=[], help="typeで絞る（カンマ区切りでOR）")
+    parser.add_argument("--status", type=csv_list, default=[], help="statusで絞る（カンマ区切りでOR）")
+    parser.add_argument("--due-before", help="dueがこの日付以前のものに絞る")
+    parser.add_argument("--updated-on", help="この日付に更新されたものに絞る")
+    parser.add_argument("--contexts", action="store_true", help="既存のcontext値を一覧する")
     args = parser.parse_args(argv)
 
-    for row in collect(args.vault_root.resolve()):
-        print("\t".join(row[column] for column in COLUMNS))
+    rows = collect(args.vault_root.resolve())
+
+    if args.contexts:
+        for context in sorted({row["context"] for row in rows if row["context"]}):
+            print(context)
+        return 0
+
+    for row in rows:
+        if matches(row, args):
+            print("\t".join(row[column] for column in COLUMNS))
     return 0
 
 
