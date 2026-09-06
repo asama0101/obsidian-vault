@@ -3,8 +3,17 @@
     "allow": [
       "Bash(git status *)",
       "Bash(git log *)",
+      "Bash(git branch --show-current)",
       "Bash(git checkout -b daily/*)",
-      "Bash(git branch --show-current)"
+      "Bash(python3 .claude/scripts/index.py *)",
+      "Bash(python3 .claude/scripts/new_note.py *)",
+      "Bash(bash .claude/scripts/close_day.sh *)",
+      "Bash(python3 -m pytest *)",
+      "mcp__claude_ai_Google_Calendar__list_events",
+      "mcp__claude_ai_Google_Calendar__list_calendars",
+      "mcp__claude_ai_Google_Calendar__search_events",
+      "mcp__claude_ai_Google_Calendar__get_event",
+      "mcp__claude_ai_Google_Drive__authenticate"
     ]
   }
 }
