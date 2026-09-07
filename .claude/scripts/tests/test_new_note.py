@@ -184,6 +184,29 @@ def test_invalid_project_character_is_rejected(tmp_path):
     assert not (vault / "Cabinet" / "Notes" / "A社").exists()
 
 
+def test_project_parent_reference_is_rejected(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(
+        vault, "--type", "task", "--title", "見積依頼", "--project", "..",
+    )
+
+    assert result.returncode == 2
+    assert not (vault / "Cabinet" / "見積依頼.md").is_file()
+    assert not any((vault / "Cabinet" / "Notes").rglob("見積依頼.md"))
+
+
+def test_project_current_dir_reference_is_rejected(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(
+        vault, "--type", "task", "--title", "見積依頼", "--project", ".",
+    )
+
+    assert result.returncode == 2
+    assert not any((vault / "Cabinet" / "Notes").rglob("見積依頼.md"))
+
+
 def test_blank_project_is_rejected(tmp_path):
     vault = make_vault(tmp_path)
 
