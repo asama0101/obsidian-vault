@@ -21,6 +21,7 @@
       "Write(Cabinet/Notes/**)",
       "Edit(Cabinet/Reference/**)",
       "Write(Cabinet/Reference/**)",
+      "Edit(Cabinet/Bases/**)",
       "Edit(Documents/**)",
       "Write(Documents/**)",
       "mcp__claude_ai_Google_Calendar__list_events",
