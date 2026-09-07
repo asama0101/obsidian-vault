@@ -79,7 +79,13 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     project = args.project.strip() if args.project is not None else ""
-    if args.project is not None and (not project or set(project) & FORBIDDEN_TITLE_CHARS):
+    project_parts = Path(project).parts
+    if args.project is not None and (
+        not project
+        or set(project) & FORBIDDEN_TITLE_CHARS
+        or len(project_parts) != 1
+        or project_parts[0] in {".", ".."}
+    ):
         print(f"案件名に使えない文字が含まれています: {args.project}", file=sys.stderr)
         return 2
 
