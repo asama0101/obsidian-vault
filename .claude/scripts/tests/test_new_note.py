@@ -12,7 +12,8 @@ date:
 status: 1_todo
 due:
 done:
-context:
+project:
+tags:
 ---
 
 ## 完了条件
@@ -64,12 +65,12 @@ def test_set_overrides_a_property(tmp_path):
 
     run_new_note(
         vault, "--type", "task", "--title", "見積書の作成",
-        "--set", "due=2026-09-10", "--set", "context=A社",
+        "--set", "due=2026-09-10", "--set", "project=[[A案件]]",
     )
 
     text = (vault / "Cabinet" / "Notes" / "見積書の作成.md").read_text(encoding="utf-8")
     assert "due: 2026-09-10" in text
-    assert "context: A社" in text
+    assert "project: [[A案件]]" in text
 
 
 def test_duplicate_title_fails_without_touching_the_existing_note(tmp_path):
@@ -117,5 +118,75 @@ def test_missing_template_is_rejected(tmp_path):
     vault = make_vault(tmp_path)
 
     result = run_new_note(vault, "--type", "project", "--title", "新規案件")
+
+    assert result.returncode == 2
+
+
+def test_project_option_creates_the_note_in_the_project_folder(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(
+        vault, "--type", "task", "--title", "C9500 見積依頼",
+        "--project", "大手町DC コアSW更改",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "Cabinet/Notes/大手町DC コアSW更改/C9500 見積依頼.md"
+    assert (vault / "Cabinet" / "Notes" / "大手町DC コアSW更改" / "C9500 見積依頼.md").is_file()
+
+
+def test_project_folder_is_created_when_missing(tmp_path):
+    vault = make_vault(tmp_path)
+    assert not (vault / "Cabinet" / "Notes" / "新宿局 回線増設").exists()
+
+    run_new_note(
+        vault, "--type", "task", "--title", "構成図の修正", "--project", "新宿局 回線増設",
+    )
+
+    assert (vault / "Cabinet" / "Notes" / "新宿局 回線増設").is_dir()
+
+
+def test_without_project_the_note_stays_directly_under_notes(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(vault, "--type", "task", "--title", "C9500後継機のEOSL確認")
+
+    assert result.stdout.strip() == "Cabinet/Notes/C9500後継機のEOSL確認.md"
+
+
+def test_duplicate_title_in_the_same_project_returns_1(tmp_path):
+    vault = make_vault(tmp_path)
+    run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "A案件")
+
+    result = run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "A案件")
+
+    assert result.returncode == 1
+
+
+def test_same_title_in_different_projects_is_allowed(tmp_path):
+    vault = make_vault(tmp_path)
+    run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "A案件")
+
+    result = run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "B案件")
+
+    assert result.returncode == 0, result.stderr
+    assert (vault / "Cabinet" / "Notes" / "B案件" / "見積依頼.md").is_file()
+
+
+def test_invalid_project_character_is_rejected(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(
+        vault, "--type", "task", "--title", "見積依頼", "--project", "A社/案件",
+    )
+
+    assert result.returncode == 2
+    assert not (vault / "Cabinet" / "Notes" / "A社").exists()
+
+
+def test_blank_project_is_rejected(tmp_path):
+    vault = make_vault(tmp_path)
+
+    result = run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "  ")
 
     assert result.returncode == 2
