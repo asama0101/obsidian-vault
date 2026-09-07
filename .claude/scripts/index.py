@@ -27,6 +27,10 @@ COLUMNS = [
 ]
 CALENDAR_COLUMNS = ["calendar_event_id", "calendar_series_id"]
 ALL_COLUMNS = COLUMNS + CALENDAR_COLUMNS
+COMPLETED_STATUSES = {
+    "task": {"4_done", "5_cancelled"},
+    "project": {"2_done"},
+}
 
 
 def strip_quotes(value: str) -> str:
@@ -121,8 +125,19 @@ def csv_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def is_completed(row: dict[str, str]) -> bool:
+    """既定の出力から外す完了物かを判定する。"""
+    return row["status"] in COMPLETED_STATUSES.get(row["type"], set())
+
+
 def matches(row: dict[str, str], args: argparse.Namespace) -> bool:
-    """索引の1行が絞り込み条件をすべて満たすかを判定する。"""
+    """索引の1行が絞り込み条件をすべて満たすかを判定する。
+
+    完了物は既定で落とすが、`--all` と `--status` の明示指定はこの既定を解除する。
+    `--status 4_done` のような明示要求を既定除外が握り潰すと結果が常に空になるため。
+    """
+    if not args.all and not args.status and is_completed(row):
+        return False
     if args.type and row["type"] not in args.type:
         return False
     if args.status and row["status"] not in args.status:
@@ -130,6 +145,8 @@ def matches(row: dict[str, str], args: argparse.Namespace) -> bool:
     if args.date and row["date"] != args.date:
         return False
     if args.updated_on and not row["mtime"].startswith(args.updated_on):
+        return False
+    if args.due_before and (not row["due"] or row["due"] > args.due_before):
         return False
     return True
 
@@ -146,6 +163,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--status", type=csv_list, default=[], help="statusで絞る（カンマ区切りでOR）")
     parser.add_argument("--date", help="frontmatterのdateがこの日付と完全一致するものに絞る")
     parser.add_argument("--updated-on", help="この日付に更新されたものに絞る")
+    parser.add_argument("--all", action="store_true", help="完了物も含めて全件出す")
+    parser.add_argument("--due-before", help="dueがこの日付以前のものに絞る（指定日を含む）")
     parser.add_argument("--contexts", action="store_true", help="既存のcontext値を一覧する")
     parser.add_argument(
         "--with-calendar-ids",
