@@ -13,12 +13,13 @@ VAULT = Path(__file__).resolve().parents[3]
 NEW_NOTE = VAULT / ".claude" / "scripts" / "new_note.py"
 
 EXPECTED_KEYS = {
-    "task": ["type", "date", "status", "due", "done", "context"],
-    "project": ["type", "date", "status", "due", "context"],
+    "task": ["type", "date", "status", "due", "done", "project", "tags"],
+    "project": ["type", "date", "status", "due", "tags"],
     "meeting": [
-        "type", "date", "status", "context", "calendar_event_id", "calendar_series_id"
+        "type", "date", "status", "project", "tags",
+        "calendar_event_id", "calendar_series_id",
     ],
-    "know-how": ["type", "date", "context"],
+    "know-how": ["type", "date", "tags"],
 }
 
 EXPECTED_HEADINGS = {
@@ -104,3 +105,10 @@ def test_meeting_status_defaults_to_scheduled():
     text = (VAULT / "Cabinet" / "Templates" / "meeting.md").read_text(encoding="utf-8")
 
     assert "status: 1_予定" in text
+
+
+@pytest.mark.parametrize("note_type", sorted(EXPECTED_KEYS))
+def test_no_template_has_a_context_property(note_type):
+    text = (VAULT / "Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
+
+    assert "context" not in text
