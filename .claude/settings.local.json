@@ -9,6 +9,8 @@
       "Bash(python3 .claude/scripts/index.py *)",
       "Bash(python3 .claude/scripts/new_note.py)",
       "Bash(python3 .claude/scripts/new_note.py *)",
+      "Bash(python3 .claude/scripts/rename_context.py)",
+      "Bash(python3 .claude/scripts/rename_context.py *)",
       "Bash(bash .claude/scripts/close_day.sh)",
       "Bash(bash .claude/scripts/close_day.sh *)",
       "Bash(python3 -m pytest *)",
