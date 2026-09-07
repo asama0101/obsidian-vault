@@ -70,24 +70,32 @@ Obsidian vaultで秘書業務を回す。人間との接点はデイリーノー
 ## スクリプト
 
 ```bash
-# 索引（列: path type status due done context date title mtime calendar_event_id calendar_series_id、ヘッダ行なし、11列）
+# 索引（列: path type status due done tags project date title mtime、ヘッダ行なし、10列）
+# tags と project が多値のときはカンマ区切りで1セルに入る
 python3 .claude/scripts/index.py [--type task,meeting] [--status 1_todo,2_doing] \
-    [--date 2026-09-07] [--updated-on 2026-09-07] [--contexts]
+    [--date 2026-09-07] [--updated-on 2026-09-07] [--due-before 2026-09-07] \
+    [--with-calendar-ids] [--all]
+
+# --with-calendar-ids を付けると末尾に calendar_event_id calendar_series_id が増えて12列になる
+# 既定では task の 4_done/5_cancelled と project の 2_done を落とす
+# --all で全件に戻す。--status を明示指定した場合もこの既定除外は効かない
+python3 .claude/scripts/index.py --type meeting --date 2026-09-07 --with-calendar-ids
 
 # ノート生成（vault相対パスを標準出力に返す。既存なら終了コード1）
-python3 .claude/scripts/new_note.py --type task --title "見積書の作成" \
-    --set due=2026-09-10 --set context=A社
+# --project を付けると Cabinet/Notes/<案件名>/ の下に作り、フォルダが無ければ作る
+python3 .claude/scripts/new_note.py --type task --title "C9500 見積依頼" \
+    --project "大手町DC コアSW更改" --set due=2026-09-10 \
+    --set 'project="[[大手町DC コアSW更改]]"'
+
+# タグは YAML のインラインリスト形式で渡す
+python3 .claude/scripts/new_note.py --type know-how --title "BGPのルートリフレクタ設計" \
+    --set 'tags=[領域/ルーティング, メーカー/Cisco]'
 
 # 締め（コミット・ffマージ・push）
 bash .claude/scripts/close_day.sh
-
-# context の値を一括で付け替える（変更したノートのvault相対パスを1行ずつ返す）
-python3 .claude/scripts/rename_context.py --old A社案件 --new A社 [--dry-run]
-
-# context が空のノートに後から値を付ける（--old ""は使えないため--pathで指定する。複数回指定可）
-# 規則2の典型形: 2件目はnew_note.py --set context=A社で直接作り、1件目にだけ遡って付ける
-python3 .claude/scripts/rename_context.py --path "Cabinet/Notes/1件目.md" --new A社
 ```
+
+`--project` オプション（配置先フォルダ）と `--set project=...`（frontmatterのリンク）は別物である。両方渡すのが通常の使い方になる。`--set project=` の値は `"[[案件名]]"` のようにダブルクォートごと渡す。クォートが落ちると YAML が `[[案件名]]` をネストしたリストと解釈し、Obsidianのプロパティ表示が壊れるため。
 
 ## 開始モード
 
@@ -98,7 +106,7 @@ python3 .claude/scripts/rename_context.py --path "Cabinet/Notes/1件目.md" --ne
 5. カレンダーを取得する（下の「カレンダー」参照）。
 6. 各イベントを `index.py --type meeting --date <今日>` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。イベントに `recurringEventId` が無い（単発イベントである）場合は `--set calendar_series_id=...` を渡さず、`calendar_series_id` は空のままにする。`## 資料` をイベントから埋める。
 7. 定例（`calendar_series_id` が一致）は前回の同シリーズ議事録から `## アクション` の未完分と `## 議題` を転記する。当日の会議が3件以上を目安に、各会議の過去議事録探索を Explore サブエージェントへ並列委任する。探索範囲は `Cabinet/Notes/` のみ。書き込みは自分が行う。並列委任を行うのは開始モードだけとする（更新モードは30分ごとに走るため、サブエージェントの起動は過剰になる）。
-8. `index.py --type task --status 1_todo,2_doing` を叩き、`due` が今日以前のもの、または `status` が `2_doing` のものを今日のタスクとする。
+8. 今日のタスクを2回の呼び出しで取る。`index.py --type task --due-before <今日>` で期限が今日以前のもの、`index.py --type task --status 2_doing` で進行中のものを取り、パスで重複を除いて結合する。1回の全件取得より出力が小さくなるため2回に分ける。既定で `4_done`/`5_cancelled` は落ちるので、完了済みタスクの除外を自分で行う必要はない。
 9. `## 今日の予定` と `## 今日のタスク` を書く。
 10. `/loop` を30分間隔で起動し、更新モードを自走させる。
 
@@ -117,19 +125,13 @@ python3 .claude/scripts/rename_context.py --path "Cabinet/Notes/1件目.md" --ne
    - 上記の条件を満たさない場合は**捕捉**として扱う（既定）。`new_note.py` でノート化し、行の後ろに ` → [[ノート名]]` を追記する。
 9. `## 確認したいこと` の回答済み行（`→` の右に文字がある行）を処理し、ノート化してその行を削除する。元になった `## メモ` 行があれば、その行の後ろにも ` → [[ノート名]]` を追記して未処理状態を解消する。
 10. **終了時刻を過ぎた会議の事後構造化を行う。** `## メモ` の生メモから `## 決定事項` と `## アクション` を抽出して議事録ノートに書き、アクションはタスクノートとして起票して議事録からリンクする。`status` を `2_実施済` または `4_不参加` に更新する。判断がつかなければ `## 確認したいこと` へ回す。
-11. **今日新規に作った `context` の棚卸しを行う。このステップは更新モードの最後に置く。**
-    - 対象の判定: `index.py` の全出力を使い、その `context` 値を持つノートが**すべて今日更新されている**（`mtime` の日付部分が今日）ものを「今日新規に作った `context`」とする。空文字列は対象外とする（`index.py --contexts` も空を落とす仕様に揃える）。
-    - 出力: 該当があれば `## メモ` の先頭に `- ⓘ 今日作った context: <値1>, <値2>（違っていれば rename_context.py で付け替え）` の1行を追記する。該当が無ければ何もしない。
-    - **値は昇順に並べる。** `index.py --contexts` の `sorted()` に揃えるため。並び順が揺れると `A社, B社` と `B社, A社` が毎サイクル「構成が変わった」と誤判定される。
-    - **同じ内容の行が既に `## メモ` にある場合は追加しない。値の構成が変わっていれば、既存のⓘ行を書き換える。**
-    - 判定に `date`（作成日）ではなく `mtime`（更新日）を使うのは、規則2で1件目に遡って `context` を付ける場合、1件目の `date` は過去日付のままだが、その編集によって `mtime` は今日になるため。`date` 基準では1件目が拾われず検知漏れになる。
-    - この判定は索引1回で計算でき、前回状態の保存は不要（状態ファイルを新設しない）。
-    - 既知の限界として、次の場合も同じ条件を満たし、新規として再掲されうる。情報提供の1行なので実害は無い。
-      - 確立済みの `context` でも、その値を持つ全ノートがたまたま同じ日に更新された場合
-      - その `context` を持つノートが1件しか無い場合
-      - 当日 `rename_context.py` で付け替えた既存値の場合
-    - **締めモードではなく更新モードに置くのは、締めモードで書くと人間の目に触れないためである。** 締めは人間がその日のデイリーノートを見終わったあとに走るため、そこで書いた行は誰にも読まれないまま過去分になる。更新モードなら30分ごとのサイクルで書かれ、人間がその日のうちに見られる。
-    - **更新モードの最後に置くのは**、ステップ9・10より前に置くと、それらのステップが新しい `context` を作った場合（確認事項の回答からのノート化、会議の事後構造化からのタスク起票）にそのサイクルで告知されず、その日の最後のサイクルでは翌朝まで告知されないため。
+11. **今日作ったタグの棚卸しを行う。このステップは更新モードの最後に置く。**
+    - 対象の判定: `index.py --updated-on <今日>` の出力だけを使う。`tags` 列に現れる値のうち、`Cabinet/Bases/` のどの `.base` にも view が無いものを「今日新しく生まれたタグ」とする。**フィルタ無しの全件呼び出しは行わない。**
+    - 出力: 該当があれば `## メモ` の先頭に `- ⓘ 今日作ったタグ: <値1>, <値2>（違っていればObsidianのタグ機能で改名。締めで .base に view を足します）` の1行を追記する。該当が無ければ何もしない。
+    - **値は昇順に並べる。** 並び順が揺れると毎サイクル「構成が変わった」と誤判定される。
+    - **同じ内容の行が既に `## メモ` にあれば追加しない。値の構成が変わっていれば既存のⓘ行を書き換える。**
+    - **更新モードの最後に置くのは**、ステップ9・10より前だと、それらが新しいタグを作った場合にそのサイクルで告知されないため。
+    - **締めモードではなく更新モードに置くのは、締めモードで書くと人間の目に触れないためである。** 締めは人間がその日のデイリーノートを見終わったあとに走る。
 
 このモードは冪等である。前回の状態を保存する必要はない。
 
