@@ -1,7 +1,7 @@
 ---
 type: know-how
 date: 2026-09-07
-context: vault運用
+tags: [領域/vault運用]
 ---
 
 ## 状況

@@ -90,7 +90,7 @@ AIは人間が書いた文言を書き換えない。捕捉してノート化し
 
 ## プロパティ更新はClaude Code経由を正とする
 
-`status` / `due` / `done` / `tags` / `project` をObsidianのプロパティパネルで直接書き換えることを前提にしない。自然言語の指示を受けたら、該当ノートのfrontmatterを直接編集する。指示は会話だけでなくデイリーノートの `## メモ` に書いてもよい。`tags` の付け替え・`status` の変更・`due` の変更のいずれかで対象ノートが明確に特定できる場合は、更新モードがノート化せず直接実行する（詳細は `.claude/skills/secretary/SKILL.md` の更新モード参照）。`tags` の値を複数ノートにまたがって付け替える場合はObsidianのタグ機能で一括改名する。`project` の変更は frontmatter と実体のフォルダの両方を直す。
+`status` / `due` / `done` / `tags` / `project` をObsidianのプロパティパネルで直接書き換えることを前提にしない。自然言語の指示を受けたら、該当ノートのfrontmatterを直接編集する。指示は会話だけでなくデイリーノートの `## メモ` に書いてもよい。`tags` の付け替え・`status` の変更・`due` の変更のいずれかで対象ノートが明確に特定できる場合は、更新モードがノート化せず直接実行する（詳細は `.claude/skills/secretary/SKILL.md` の更新モード参照）。`tags` の値を複数ノートにまたがって付け替える場合は `index.py` の `tags` 列で対象ノートを列挙し、frontmatterを1件ずつ直接編集する。`project` の変更は frontmatter と実体のフォルダの両方を直す。
 
 ## 通知は行わない
 
