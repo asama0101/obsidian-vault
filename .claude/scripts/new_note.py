@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """テンプレートから Cabinet/Notes/ にノートを1件作る。
 
+`--project` を指定すると Cabinet/Notes/<案件名>/ の下に作り、案件フォルダが
+無ければ作る。未指定なら Cabinet/Notes/ 直下に作る。
+
 終了コードは 0=成功、1=同名ノートが既にある、2=入力エラー。
 """
 from __future__ import annotations
@@ -67,11 +70,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--type", required=True, choices=NOTE_TYPES)
     parser.add_argument("--title", required=True)
     parser.add_argument("--set", action="append", default=[], dest="sets")
+    parser.add_argument("--project", help="案件フォルダ名。指定するとその配下に作る")
     args = parser.parse_args(argv)
 
     title = args.title.strip()
     if not title or set(title) & FORBIDDEN_TITLE_CHARS:
         print(f"ノート名に使えない文字が含まれています: {args.title}", file=sys.stderr)
+        return 2
+
+    project = args.project.strip() if args.project is not None else ""
+    if args.project is not None and (not project or set(project) & FORBIDDEN_TITLE_CHARS):
+        print(f"案件名に使えない文字が含まれています: {args.project}", file=sys.stderr)
         return 2
 
     vault = args.vault_root.resolve()
@@ -80,7 +89,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"テンプレートがありません: {template}", file=sys.stderr)
         return 2
 
-    target = vault / "Cabinet" / "Notes" / f"{title}.md"
+    notes_dir = vault / "Cabinet" / "Notes"
+    target = notes_dir / project / f"{title}.md" if project else notes_dir / f"{title}.md"
     if target.exists():
         print(f"同名のノートが既にあります: {target.relative_to(vault).as_posix()}", file=sys.stderr)
         return 1
