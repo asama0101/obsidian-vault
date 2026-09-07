@@ -11,24 +11,42 @@ import datetime as dt
 import sys
 from pathlib import Path
 
+LIST_SEPARATOR = ","
+
 COLUMNS = [
     "path",
     "type",
     "status",
     "due",
     "done",
-    "context",
+    "tags",
+    "project",
     "date",
     "title",
     "mtime",
-    "calendar_event_id",
-    "calendar_series_id",
 ]
+CALENDAR_COLUMNS = ["calendar_event_id", "calendar_series_id"]
+ALL_COLUMNS = COLUMNS + CALENDAR_COLUMNS
+
+
+def strip_quotes(value: str) -> str:
+    """値の前後を囲むクォートを1組だけ取り除く。"""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1]
+    return value
+
+
+def parse_inline_list(value: str) -> list[str]:
+    """`[a, b]` 形式のインラインリストを要素のリストにする。"""
+    return [strip_quotes(item.strip()) for item in value[1:-1].split(",") if item.strip()]
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
-    """先頭の `---` で囲まれた `key: value` 行を辞書にして返す。
+    """先頭の `---` で囲まれたfrontmatterを辞書にして返す。
 
+    値がリストの場合（`[a, b]` のインライン形式と `- a` のブロック形式の両方）は、
+    要素を LIST_SEPARATOR で連結した1つの文字列にする。`[[リンク]]` は
+    ネストしたリストではなくObsidianのリンクなので、リストとして分解しない。
     閉じの `---` が無い場合はfrontmatter無しとみなして空の辞書を返す。
     値の前後を囲むクォートは取り除く。
     """
@@ -36,16 +54,37 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     if not lines or lines[0].strip() != "---":
         return {}
     props: dict[str, str] = {}
+    pending_key: str | None = None
+    pending_items: list[str] = []
+
+    def flush() -> None:
+        """直前の `key:` に続くブロックリストを確定させる。"""
+        if pending_key is not None and pending_items:
+            props[pending_key] = LIST_SEPARATOR.join(pending_items)
+
     for line in lines[1:]:
-        if line.strip() == "---":
+        stripped = line.strip()
+        if stripped == "---":
+            flush()
             return props
+        if pending_key is not None and stripped.startswith("- "):
+            pending_items.append(strip_quotes(stripped[2:].strip()))
+            continue
+        flush()
+        pending_key, pending_items = None, []
         key, separator, value = line.partition(":")
         if not separator:
             continue
+        key = key.strip()
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        props[key.strip()] = value
+        if value.startswith("[") and value.endswith("]") and not value.startswith("[["):
+            props[key] = LIST_SEPARATOR.join(parse_inline_list(value))
+            continue
+        if not value:
+            pending_key = key
+            props[key] = ""
+            continue
+        props[key] = strip_quotes(value)
     return {}
 
 
@@ -57,7 +96,10 @@ def sanitize(value: str) -> str:
 def build_row(note: Path, vault_root: Path) -> dict[str, str]:
     """ノート1件を索引の1行に変換する。"""
     props = parse_frontmatter(note.read_text(encoding="utf-8", errors="replace"))
-    row = {column: sanitize(props.get(column, "")) for column in COLUMNS}
+    row = {column: sanitize(props.get(column, "")) for column in ALL_COLUMNS}
+    # `context` は出力列からは廃止されたが、移行期の `--contexts`（Task 5で削除予定）
+    # がまだ旧プロパティを参照するため、内部保持だけ残す。
+    row["context"] = sanitize(props.get("context", ""))
     row["path"] = note.relative_to(vault_root).as_posix()
     row["title"] = note.stem
     row["mtime"] = dt.datetime.fromtimestamp(note.stat().st_mtime).isoformat(
@@ -105,6 +147,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--date", help="frontmatterのdateがこの日付と完全一致するものに絞る")
     parser.add_argument("--updated-on", help="この日付に更新されたものに絞る")
     parser.add_argument("--contexts", action="store_true", help="既存のcontext値を一覧する")
+    parser.add_argument(
+        "--with-calendar-ids",
+        action="store_true",
+        help="calendar_event_id と calendar_series_id を末尾に付ける",
+    )
     args = parser.parse_args(argv)
 
     rows = collect(args.vault_root.resolve())
@@ -114,9 +161,10 @@ def main(argv: list[str] | None = None) -> int:
             print(context)
         return 0
 
+    columns = ALL_COLUMNS if args.with_calendar_ids else COLUMNS
     for row in rows:
         if matches(row, args):
-            print("\t".join(row[column] for column in COLUMNS))
+            print("\t".join(row[column] for column in columns))
     return 0
 
 

@@ -4,7 +4,8 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "index.py"
-COLUMN_COUNT = 11
+COLUMN_COUNT = 10
+COLUMN_COUNT_WITH_CALENDAR_IDS = 12
 
 
 def write_note(vault: Path, name: str, body: str) -> Path:
@@ -47,23 +48,23 @@ def test_columns_are_in_fixed_order(tmp_path):
         tmp_path,
         "見積書の作成.md",
         "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-10\n"
-        "done: \ncontext: A社\ndate: 2026-09-07\n"
-        "calendar_event_id: evt-123\ncalendar_series_id: series-456\n---\n\n## 完了条件\n",
+        "done: \ntags: [種別/更改]\nproject: \"[[大手町DC コアSW更改]]\"\n"
+        "date: 2026-09-07\n---\n\n## 完了条件\n",
     )
 
     row = rows(run_index(tmp_path))[0]
 
+    assert len(row) == COLUMN_COUNT
     assert row[0] == "Cabinet/Notes/見積書の作成.md"
     assert row[1] == "task"
     assert row[2] == "1_todo"
     assert row[3] == "2026-09-10"
     assert row[4] == ""
-    assert row[5] == "A社"
-    assert row[6] == "2026-09-07"
-    assert row[7] == "見積書の作成"
-    assert row[8].startswith("20")
-    assert row[9] == "evt-123"
-    assert row[10] == "series-456"
+    assert row[5] == "種別/更改"
+    assert row[6] == "[[大手町DC コアSW更改]]"
+    assert row[7] == "2026-09-07"
+    assert row[8] == "見積書の作成"
+    assert row[9].startswith("20")
 
 
 def test_empty_property_becomes_empty_string(tmp_path):
@@ -81,7 +82,7 @@ def test_note_without_frontmatter_is_still_listed(tmp_path):
 
     assert len(result) == 1
     assert result[0][1] == ""
-    assert result[0][7] == "メモ書き"
+    assert result[0][8] == "メモ書き"
 
 
 def test_unclosed_frontmatter_is_treated_as_absent(tmp_path):
@@ -93,21 +94,21 @@ def test_unclosed_frontmatter_is_treated_as_absent(tmp_path):
 
 
 def test_quoted_values_are_unquoted(tmp_path):
-    write_note(tmp_path, "引用付き.md", '---\ntype: "task"\ncontext: \'A社\'\n---\n')
+    write_note(tmp_path, "引用付き.md", "---\ntype: \"task\"\nproject: '[[A案件]]'\n---\n")
 
     row = rows(run_index(tmp_path))[0]
 
     assert row[1] == "task"
-    assert row[5] == "A社"
+    assert row[6] == "[[A案件]]"
 
 
 def test_tab_in_value_is_sanitized(tmp_path):
-    write_note(tmp_path, "タブ入り.md", "---\ntype: task\ncontext: A社\tB社\n---\n")
+    write_note(tmp_path, "タブ入り.md", "---\ntype: task\nproject: A案件\tB案件\n---\n")
 
     row = rows(run_index(tmp_path))[0]
 
     assert len(row) == COLUMN_COUNT
-    assert row[5] == "A社 B社"
+    assert row[6] == "A案件 B案件"
 
 
 def test_missing_notes_dir_outputs_nothing(tmp_path):
@@ -117,7 +118,7 @@ def test_missing_notes_dir_outputs_nothing(tmp_path):
 def test_invalid_utf8_note_does_not_break_the_index(tmp_path):
     write_note(tmp_path, "正常なノート.md", "---\ntype: task\n---\n")
     notes = tmp_path / "Cabinet" / "Notes"
-    (notes / "壊れたノート.md").write_bytes(b"---\ntype: task\ncontext: \xff\xfe\n---\n")
+    (notes / "壊れたノート.md").write_bytes(b"---\ntype: task\ntags: [\xff\xfe]\n---\n")
 
     result = rows(run_index(tmp_path))
 
@@ -142,7 +143,7 @@ def test_filter_by_type(tmp_path):
     result = rows(run_index(tmp_path, "--type", "task"))
 
     assert len(result) == 1
-    assert result[0][7] == "見積書の作成"
+    assert result[0][8] == "見積書の作成"
 
 
 def test_status_accepts_comma_separated_values_as_or(tmp_path):
@@ -152,7 +153,7 @@ def test_status_accepts_comma_separated_values_as_or(tmp_path):
 
     result = rows(run_index(tmp_path, "--status", "1_todo,2_doing"))
 
-    assert sorted(row[7] for row in result) == ["A", "B"]
+    assert sorted(row[8] for row in result) == ["A", "B"]
 
 
 def test_type_and_status_combine_as_and(tmp_path):
@@ -161,7 +162,7 @@ def test_type_and_status_combine_as_and(tmp_path):
 
     result = rows(run_index(tmp_path, "--type", "task", "--status", "1_todo"))
 
-    assert [row[7] for row in result] == ["A"]
+    assert [row[8] for row in result] == ["A"]
 
 
 def test_date_matches_only_the_exact_date(tmp_path):
@@ -169,7 +170,7 @@ def test_date_matches_only_the_exact_date(tmp_path):
 
     result = rows(run_index(tmp_path, "--date", "2026-09-07"))
 
-    assert [row[7] for row in result] == ["A"]
+    assert [row[8] for row in result] == ["A"]
 
 
 def test_date_excludes_other_dates(tmp_path):
@@ -190,7 +191,7 @@ def test_date_combines_with_type_as_and(tmp_path):
 
     result = rows(run_index(tmp_path, "--type", "meeting", "--date", "2026-09-07"))
 
-    assert [row[7] for row in result] == ["A"]
+    assert [row[8] for row in result] == ["A"]
 
 
 def test_updated_on_matches_the_date_part_of_mtime(tmp_path):
@@ -199,7 +200,7 @@ def test_updated_on_matches_the_date_part_of_mtime(tmp_path):
 
     result = rows(run_index(tmp_path, "--updated-on", today))
 
-    assert [row[7] for row in result] == ["A"]
+    assert [row[8] for row in result] == ["A"]
 
 
 def test_updated_on_excludes_other_dates(tmp_path):
@@ -252,3 +253,75 @@ def test_path_column_includes_the_project_folder(tmp_path):
     result = rows(run_index(tmp_path))
 
     assert result[0][0] == "Cabinet/Notes/大手町DC コアSW更改/C9500 見積依頼.md"
+
+
+def test_tags_inline_list_is_joined_with_commas(tmp_path):
+    write_note(tmp_path, "案件.md", "---\ntype: project\ntags: [種別/更改, メーカー/Cisco]\n---\n")
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[5] == "種別/更改,メーカー/Cisco"
+
+
+def test_tags_block_list_is_joined_with_commas(tmp_path):
+    write_note(
+        tmp_path,
+        "ノウハウ.md",
+        "---\ntype: know-how\ntags:\n  - 領域/ルーティング\n  - メーカー/Cisco\ndate: 2026-06-14\n---\n",
+    )
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[5] == "領域/ルーティング,メーカー/Cisco"
+    assert row[7] == "2026-06-14"
+
+
+def test_project_link_is_kept_as_is(tmp_path):
+    write_note(tmp_path, "タスク.md", "---\ntype: task\nproject: \"[[大手町DC コアSW更改]]\"\n---\n")
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[6] == "[[大手町DC コアSW更改]]"
+
+
+def test_project_list_is_joined_with_commas(tmp_path):
+    write_note(tmp_path, "合同会議.md", "---\ntype: meeting\nproject: [\"[[A案件]]\", \"[[B案件]]\"]\n---\n")
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[6] == "[[A案件]],[[B案件]]"
+
+
+def test_unquoted_wikilink_is_not_parsed_as_a_list(tmp_path):
+    write_note(tmp_path, "タスク.md", "---\ntype: task\nproject: [[A案件]]\n---\n")
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[6] == "[[A案件]]"
+
+
+def test_calendar_ids_are_absent_from_the_default_columns(tmp_path):
+    write_note(
+        tmp_path,
+        "定例.md",
+        "---\ntype: meeting\ncalendar_event_id: evt-123\ncalendar_series_id: series-456\n---\n",
+    )
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert len(row) == COLUMN_COUNT
+    assert "evt-123" not in row
+
+
+def test_with_calendar_ids_appends_the_two_columns(tmp_path):
+    write_note(
+        tmp_path,
+        "定例.md",
+        "---\ntype: meeting\ncalendar_event_id: evt-123\ncalendar_series_id: series-456\n---\n",
+    )
+
+    row = rows(run_index(tmp_path, "--with-calendar-ids"))[0]
+
+    assert len(row) == COLUMN_COUNT_WITH_CALENDAR_IDS
+    assert row[10] == "evt-123"
+    assert row[11] == "series-456"
