@@ -67,11 +67,11 @@ def build_row(note: Path, vault_root: Path) -> dict[str, str]:
 
 
 def collect(vault_root: Path) -> list[dict[str, str]]:
-    """Cabinet/Notes/ 直下の .md をファイル名順に索引化する。"""
+    """Cabinet/Notes/ 配下（案件フォルダを含む）の .md をパス順に索引化する。"""
     notes_dir = vault_root / "Cabinet" / "Notes"
     if not notes_dir.is_dir():
         return []
-    return [build_row(note, vault_root) for note in sorted(notes_dir.glob("*.md"))]
+    return [build_row(note, vault_root) for note in sorted(notes_dir.rglob("*.md"))]
 
 
 def csv_list(value: str) -> list[str]:

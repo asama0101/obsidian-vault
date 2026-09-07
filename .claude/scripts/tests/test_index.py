@@ -217,3 +217,38 @@ def test_contexts_lists_unique_values_sorted(tmp_path):
     output = run_index(tmp_path, "--contexts")
 
     assert output.splitlines() == ["A社", "B社"]
+
+
+def write_note_in(vault: Path, folder: str, name: str, body: str) -> Path:
+    """一時vaultの Cabinet/Notes/<folder>/ にノートを1件置く。"""
+    notes = vault / "Cabinet" / "Notes" / folder
+    notes.mkdir(parents=True, exist_ok=True)
+    path = notes / name
+    path.write_text(body, encoding="utf-8")
+    return path
+
+
+def test_notes_in_subfolders_are_listed(tmp_path):
+    write_note_in(tmp_path, "大手町DC コアSW更改", "C9500 見積依頼.md", "---\ntype: task\n---\n")
+
+    result = rows(run_index(tmp_path))
+
+    assert len(result) == 1
+    assert result[0][1] == "task"
+
+
+def test_notes_directly_under_notes_dir_are_still_listed(tmp_path):
+    write_note(tmp_path, "BGPのルートリフレクタ設計.md", "---\ntype: know-how\n---\n")
+    write_note_in(tmp_path, "大手町DC コアSW更改", "C9500 見積依頼.md", "---\ntype: task\n---\n")
+
+    result = rows(run_index(tmp_path))
+
+    assert sorted(row[1] for row in result) == ["know-how", "task"]
+
+
+def test_path_column_includes_the_project_folder(tmp_path):
+    write_note_in(tmp_path, "大手町DC コアSW更改", "C9500 見積依頼.md", "---\ntype: task\n---\n")
+
+    result = rows(run_index(tmp_path))
+
+    assert result[0][0] == "Cabinet/Notes/大手町DC コアSW更改/C9500 見積依頼.md"
