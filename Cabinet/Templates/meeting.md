@@ -2,7 +2,8 @@
 type: meeting
 date:
 status: 1_予定
-context:
+project:
+tags:
 calendar_event_id:
 calendar_series_id:
 ---

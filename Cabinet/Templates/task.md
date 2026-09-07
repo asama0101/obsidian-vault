@@ -4,7 +4,8 @@ date:
 status: 1_todo
 due:
 done:
-context:
+project:
+tags:
 ---
 
 ## 完了条件

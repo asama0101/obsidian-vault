@@ -1,7 +1,7 @@
 ---
 type: know-how
 date:
-context:
+tags:
 ---
 
 ## 状況
