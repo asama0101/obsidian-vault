@@ -209,17 +209,6 @@ def test_updated_on_excludes_other_dates(tmp_path):
     assert run_index(tmp_path, "--updated-on", "1999-01-01") == ""
 
 
-def test_contexts_lists_unique_values_sorted(tmp_path):
-    write_note(tmp_path, "A.md", "---\ntype: task\ncontext: B社\n---\n")
-    write_note(tmp_path, "B.md", "---\ntype: task\ncontext: A社\n---\n")
-    write_note(tmp_path, "C.md", "---\ntype: task\ncontext: A社\n---\n")
-    write_note(tmp_path, "D.md", "---\ntype: task\ncontext:\n---\n")
-
-    output = run_index(tmp_path, "--contexts")
-
-    assert output.splitlines() == ["A社", "B社"]
-
-
 def write_note_in(vault: Path, folder: str, name: str, body: str) -> Path:
     """一時vaultの Cabinet/Notes/<folder>/ にノートを1件置く。"""
     notes = vault / "Cabinet" / "Notes" / folder

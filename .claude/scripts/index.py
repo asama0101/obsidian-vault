@@ -101,9 +101,6 @@ def build_row(note: Path, vault_root: Path) -> dict[str, str]:
     """ノート1件を索引の1行に変換する。"""
     props = parse_frontmatter(note.read_text(encoding="utf-8", errors="replace"))
     row = {column: sanitize(props.get(column, "")) for column in ALL_COLUMNS}
-    # `context` は出力列からは廃止されたが、移行期の `--contexts`（Task 5で削除予定）
-    # がまだ旧プロパティを参照するため、内部保持だけ残す。
-    row["context"] = sanitize(props.get("context", ""))
     row["path"] = note.relative_to(vault_root).as_posix()
     row["title"] = note.stem
     row["mtime"] = dt.datetime.fromtimestamp(note.stat().st_mtime).isoformat(
@@ -165,7 +162,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--updated-on", help="この日付に更新されたものに絞る")
     parser.add_argument("--all", action="store_true", help="完了物も含めて全件出す")
     parser.add_argument("--due-before", help="dueがこの日付以前のものに絞る（指定日を含む）")
-    parser.add_argument("--contexts", action="store_true", help="既存のcontext値を一覧する")
     parser.add_argument(
         "--with-calendar-ids",
         action="store_true",
@@ -174,11 +170,6 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     rows = collect(args.vault_root.resolve())
-
-    if args.contexts:
-        for context in sorted({row["context"] for row in rows if row["context"]}):
-            print(context)
-        return 0
 
     columns = ALL_COLUMNS if args.with_calendar_ids else COLUMNS
     for row in rows:
