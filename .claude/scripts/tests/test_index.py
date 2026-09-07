@@ -325,3 +325,72 @@ def test_with_calendar_ids_appends_the_two_columns(tmp_path):
     assert len(row) == COLUMN_COUNT_WITH_CALENDAR_IDS
     assert row[10] == "evt-123"
     assert row[11] == "series-456"
+
+
+def test_done_task_is_excluded_by_default(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 4_done\n---\n")
+
+    assert run_index(tmp_path) == ""
+
+
+def test_cancelled_task_is_excluded_by_default(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 5_cancelled\n---\n")
+
+    assert run_index(tmp_path) == ""
+
+
+def test_done_project_is_excluded_by_default(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: project\nstatus: 2_done\n---\n")
+
+    assert run_index(tmp_path) == ""
+
+
+def test_active_notes_are_kept_by_default(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: project\nstatus: 1_active\n---\n")
+    write_note(tmp_path, "C.md", "---\ntype: meeting\nstatus: 2_実施済\n---\n")
+
+    result = rows(run_index(tmp_path))
+
+    assert sorted(row[8] for row in result) == ["A", "B", "C"]
+
+
+def test_all_option_includes_completed_notes(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 4_done\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\nstatus: 1_todo\n---\n")
+
+    result = rows(run_index(tmp_path, "--all"))
+
+    assert sorted(row[8] for row in result) == ["A", "B"]
+
+
+def test_explicit_status_disables_the_default_exclusion(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 4_done\n---\n")
+
+    result = rows(run_index(tmp_path, "--status", "4_done"))
+
+    assert [row[8] for row in result] == ["A"]
+
+
+def test_due_before_includes_the_boundary_date(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-07\n---\n")
+
+    result = rows(run_index(tmp_path, "--due-before", "2026-09-07"))
+
+    assert [row[8] for row in result] == ["A"]
+
+
+def test_due_before_excludes_later_and_empty_due(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-08\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: task\nstatus: 1_todo\ndue:\n---\n")
+
+    assert run_index(tmp_path, "--due-before", "2026-09-07") == ""
+
+
+def test_due_before_combines_with_type_as_and(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\nstatus: 1_todo\ndue: 2026-09-01\n---\n")
+    write_note(tmp_path, "B.md", "---\ntype: project\nstatus: 1_active\ndue: 2026-09-01\n---\n")
+
+    result = rows(run_index(tmp_path, "--type", "task", "--due-before", "2026-09-07"))
+
+    assert [row[8] for row in result] == ["A"]
