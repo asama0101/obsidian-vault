@@ -27,3 +27,33 @@ views:
       - date
     columnSize:
       note.date: 110
+  - type: table
+    name: 領域-DB
+    filters:
+      and:
+        - type == "know-how"
+        - file.hasTag("領域/DB")
+    order:
+      - file.name
+      - date
+      - context
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
+  - type: table
+    name: 領域-ルーティング
+    filters:
+      and:
+        - type == "know-how"
+        - file.hasTag("領域/ルーティング")
+    order:
+      - file.name
+      - date
+      - context
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110

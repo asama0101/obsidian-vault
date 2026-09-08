@@ -31,3 +31,33 @@ views:
       - date
     summaries:
       file.name: Count
+  - type: table
+    name: 種別-新設
+    filters:
+      and:
+        - type == "project"
+        - file.hasTag("種別/新設")
+    order:
+      - file.name
+      - due
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 種別-障害
+    filters:
+      and:
+        - type == "project"
+        - file.hasTag("種別/障害")
+    order:
+      - file.name
+      - due
+      - context
+    sort:
+      - property: due
+        direction: ASC
+    columnSize:
+      note.due: 110
