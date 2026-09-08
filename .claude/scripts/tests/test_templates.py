@@ -91,7 +91,13 @@ def test_new_note_can_generate_every_type(vault, note_type):
     )
 
     assert result.returncode == 0, result.stderr
-    created = vault / "Cabinet" / "Notes" / f"検証用{note_type}.md"
+    title = f"検証用{note_type}"
+    if note_type == "project":
+        created_path = result.stdout.strip()
+        assert created_path.startswith(f"Cabinet/Notes/") and created_path.endswith(f"{title}.md")
+        created = vault / created_path
+    else:
+        created = vault / "Cabinet" / "Notes" / f"{title}.md"
     assert f"type: {note_type}" in created.read_text(encoding="utf-8")
 
 
