@@ -1,5 +1,7 @@
 # スクリプト
 
+`index.py`・`new_note.py`・`close_day.sh` の呼び出し例をまとめたチートシートである。
+
 ```bash
 # 索引（列: path type status due done tags project date title mtime、ヘッダ行なし、10列）
 # tags と project が多値のときはカンマ区切りで1セルに入る

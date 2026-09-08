@@ -1,5 +1,7 @@
 # ノートの編集
 
+既存ノートの `status`/`due`/`tags`/`project` を書き換える際の編集方法を扱う。
+
 - `status` や `due` の変更は frontmatter を直接編集する。値域は `.claude/CLAUDE.md` の表に従う。
 - `task` を完了にするときは `status: 4_done` と `done: <今日の日付>` を両方書く。
 - `tags` の変更は frontmatter を直接編集する。同じ値を持つ他のノートも直す必要がある場合は、`index.py` の `tags` 列で対象ノートを列挙し、frontmatterを1件ずつ直接編集する。

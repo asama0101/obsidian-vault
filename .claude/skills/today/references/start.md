@@ -1,12 +1,27 @@
 # 開始モード
 
+1日の最初にデイリーノートを作り、カレンダーとタスクを揃える。`today` スキルの「モードの判別」節が起動を判定する。`main` ブランチにいる場合、または当日の日次ブランチにいるのに当日のデイリーノートが無い場合に開始モードになる。
+
 1. 日次ブランチを確認・作成する。
 2. `Cabinet/Templates/today.md` から `Cabinet/Diary/<今日の日付>.md` を作り、`date` を今日にする。同名のファイルが既にあれば作り直さず、そのまま使う（`main` 上に当日分が残っていた場合。書きかけの `## メモ` を消さないため）。
 3. `Cabinet/MEMORY.md` を読む。
 4. 前日の `Cabinet/Diary/<前日>.md` に未処理の痕跡（`- ⚠ 未処理 N件` の行）があれば、`## メモ` に `- 前日の未処理: [[Cabinet/Diary/<前日>]]` の1行を書く。取りこぼしを翌日に繰り越して見えるようにするため。
 5. カレンダーを取得する（`references/calendar.md` 参照）。
-6. 各イベントを `index.py --type meeting --date <今日> --with-calendar-ids` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。イベントに `recurringEventId` が無い（単発イベントである）場合は `--set calendar_series_id=...` を渡さず、`calendar_series_id` は空のままにする。`## 資料` をイベントから埋める。
-7. 定例（`calendar_series_id` が一致）は前回の同シリーズ議事録から `## アクション` の未完分と `## 議題` を転記する。当日の会議が3件以上を目安に、各会議の過去議事録探索を Explore サブエージェントへ並列委任する。探索範囲は `Cabinet/Notes/` のみ。書き込みは自分が行う。並列委任を行うのは開始モードだけとする（更新モードは30分ごとに走るため、サブエージェントの起動は過剰になる）。
-8. 今日のタスクを2回の呼び出しで取る。`index.py --type task --status 1_todo,2_doing --due-before <今日>` で期限が今日以前で未完のもの、`index.py --type task --status 2_doing` で進行中のものを取り、パスで重複を除いて結合する。1本目に `--status 1_todo,2_doing` を付けて `3_pending`（保留）を除外するのは、締めモードで保留に落としたタスクが翌朝また並んでしまうと保留という操作が意味を失うため。1回の呼び出しに絞るより出力が小さくなるため2回に分ける。既定で `4_done`/`5_cancelled` は落ちるので、完了済みタスクの除外を自分で行う必要はない。
+6. **カレンダーイベントに対応する議事録ノートを作る。**
+   - 各イベントを `index.py --type meeting --date <今日> --with-calendar-ids` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。
+   - ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。
+   - イベントに `recurringEventId` が無い（単発イベントである）場合は `--set calendar_series_id=...` を渡さず、`calendar_series_id` は空のままにする。
+   - `## 資料` をイベントから埋める。
+7. **定例会議は前回の議事録から転記する。** 定例（`calendar_series_id` が一致）は前回の同シリーズ議事録から `## アクション` の未完分と `## 議題` を転記する。
+   - 当日の会議が3件以上を目安に、各会議の過去議事録探索を Explore サブエージェントへ並列委任する。
+   - 探索範囲は `Cabinet/Notes/` のみ。
+   - 書き込みは自分（Main）が行う。
+
+   並列委任を行うのは開始モードだけとする（更新モードは30分ごとに走るため、サブエージェントの起動は過剰になる）。
+8. **今日のタスクを2回の呼び出しで取る。**
+   - `index.py --type task --status 1_todo,2_doing --due-before <今日>` で期限が今日以前で未完のものを取る。`--status 1_todo,2_doing` を付けて `3_pending`（保留）を除外するのは、締めモードで保留に落としたタスクが翌朝また並んでしまうと保留という操作が意味を失うため。
+   - `index.py --type task --status 2_doing` で進行中のものを取る。1回の呼び出しに絞るより出力が小さくなるため、こちらと合わせて2回に分ける。
+   - 2つの出力をパスで重複を除いて結合する。
+   - 既定で `4_done`/`5_cancelled` は落ちるので、完了済みタスクの除外を自分で行う必要はない。
 9. `## 今日の予定` と `## 今日のタスク` を書く。
 10. `/loop` を30分間隔で起動し、更新モードを自走させる。
