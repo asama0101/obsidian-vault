@@ -54,6 +54,6 @@ Obsidianを「見る場所」、Claude Codeを「秘書業務を回す場所」�
 ## 中身を知りたいとき
 
 - 運用ルール: `.claude/CLAUDE.md`
-- 秘書の手順: `.claude/skills/secretary/SKILL.md`
+- 秘書の手順: `.claude/skills/today/SKILL.md`
 - 設計の経緯と判断の記録: `.claude/specs/2026-09-07-vault-secretary-redesign-design.md`
 - 今回の再構成の設計: `.claude/specs/2026-09-07-vault-restructure-design.md`
