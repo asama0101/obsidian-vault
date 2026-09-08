@@ -13,12 +13,12 @@ tags: [領域/vault運用]
 ### 前提
 
 - Obsidian **1.11 以降**を使う。Basesがコア機能として使えるため
-- `secretary`スキルの締め手順（`.claude/scripts/close_day.sh`）が日次ブランチを`main`へマージ後に`git push origin main`するため、リモートリポジトリ（`origin`）を設定しておく。設定しない場合は`push`だけスキップされる（マージ自体は成功する）
+- `today`スキルの締め手順（`.claude/scripts/close_day.sh`）が日次ブランチを`main`へマージ後に`git push origin main`するため、リモートリポジトリ（`origin`）を設定しておく。設定しない場合は`push`だけスキップされる（マージ自体は成功する）
 - テストを走らせる場合はPyYAMLが要る（`.claude/scripts/tests/test_bases.py`が`.base`のYAMLを解析するため）
 
 ### 1. Gitリポジトリを初期化する
 
-`secretary`スキルの締め手順が日次ブランチのマージ・pushを行うため、他の手順より先に済ませておく。
+`today`スキルの締め手順が日次ブランチのマージ・pushを行うため、他の手順より先に済ませておく。
 
 - vaultルートで`git init -b main`を実行する
 - `.gitignore`を作成し、以下を除外する。
@@ -49,7 +49,7 @@ vaultルート直下に`Documents/`と`Cabinet/`を作り、`Cabinet/`配下に`
 
 - `task.md` / `project.md` / `meeting.md` / `know-how.md` / `today.md`を`Cabinet/Templates/`にコピーする
 - `設定 → コアプラグイン → テンプレート`を有効化し、テンプレートフォルダの場所を`Cabinet/Templates`に設定する
-- `設定 → コアプラグイン → デイリーノート`を**無効化**する。`/today`以外がデイリーノートを作る経路を作らないため。コアプラグインは保存先が未設定だと`<日付>.md`をvaultルート直下に作るので、有効なままだと`Cabinet/Diary/`のデイリーノートとは別に第2のデイリーノートができ、人間の接点が2か所に割れる
+- `設定 → コアプラグイン → デイリーノート`を**無効化**する。today スキル以外がデイリーノートを作る経路を作らないため。コアプラグインは保存先が未設定だと`<日付>.md`をvaultルート直下に作るので、有効なままだと`Cabinet/Diary/`のデイリーノートとは別に第2のデイリーノートができ、人間の接点が2か所に割れる
 - `設定 → ファイルとリンク → 起動時に開くファイル`を`最後に開いたファイル`に設定する
 - `設定 → ファイルとリンク → 新規添付ファイルの保存先`を`Cabinet/Assets`に設定する
 - `設定 → ファイルとリンク → 新規ノートの作成場所`を`Documents`に設定する。廃止済みの`Inbox`等を指したままにすると、Obsidianで新規ノートを1枚作った瞬間に誰も読まない第2の書き込み口が復活する
@@ -62,18 +62,17 @@ vaultルート直下に`Documents/`と`Cabinet/`を作り、`Cabinet/`配下に`
 - `設定 → ホットキー`で「右のサイドバーを開閉」に任意のキー（例: `Ctrl+,`）を割り当てる
 - `設定 → ホットキー`で「左のサイドバーを開閉」に任意のキー（例: `Ctrl+.`）を割り当てる
 
-### 6. Claude Codeコマンドを配置する
+### 6. Claude Codeスキルを配置する
 
 - `CLAUDE.md`を`.claude/`配下に配置する
-- `.claude/commands/`に`today.md` / `intake.md` / `close.md`を配置する
-- `.claude/skills/secretary/SKILL.md`を配置する
+- `.claude/skills/today/`（`SKILL.md`と`references/`配下）を配置する
 - `.claude/scripts/`に`index.py` / `new_note.py` / `close_day.sh`を配置する。3本とも実行可能にしておく
 - `.claude/settings.local.json`にスクリプトとカレンダーMCPの事前許可を置く。無人ループがパーミッションプロンプトで止まらないようにするため
 - （任意）Google CalendarまたはOutlookのMCP連携を設定する
 
 ### 7. 運用を開始する
 
-- 1日の最初に`/today`を1回起動する。以後は更新モードが自動で繰り返され、締め処理まで人間の起動は不要
+- 1日の最初に「今日のノートを開いて」等とClaude Codeに伝える。以後は更新モードが自動で繰り返され、締め処理まで人間の起動は不要
 
 ## 注意点
 
