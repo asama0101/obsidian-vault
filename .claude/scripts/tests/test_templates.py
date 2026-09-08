@@ -25,7 +25,7 @@ EXPECTED_KEYS = {
 EXPECTED_HEADINGS = {
     "task": ["## 完了条件", "## 作業ログ"],
     "project": ["## 概要", "## 現状と次の一手", "## 経緯", "## 関連"],
-    "meeting": ["## 議題", "## 資料", "## メモ", "## 決定事項", "## アクション"],
+    "meeting": ["## 会議情報", "## 議題", "## 資料", "## メモ", "## 決定事項", "## アクション"],
     "know-how": ["## 状況", "## 手順", "## 注意点"],
 }
 
@@ -91,7 +91,13 @@ def test_new_note_can_generate_every_type(vault, note_type):
     )
 
     assert result.returncode == 0, result.stderr
-    created = vault / "Cabinet" / "Notes" / f"検証用{note_type}.md"
+    title = f"検証用{note_type}"
+    if note_type == "project":
+        created_path = result.stdout.strip()
+        assert created_path.startswith(f"Cabinet/Notes/") and created_path.endswith(f"{title}.md")
+        created = vault / created_path
+    else:
+        created = vault / "Cabinet" / "Notes" / f"{title}.md"
     assert f"type: {note_type}" in created.read_text(encoding="utf-8")
 
 

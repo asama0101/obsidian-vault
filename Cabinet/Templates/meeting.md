@@ -8,6 +8,12 @@ calendar_event_id:
 calendar_series_id:
 ---
 
+## 会議情報
+
+- URL: 
+- 出席者: 
+- 場所: 
+
 ## 議題
 
 ## 資料

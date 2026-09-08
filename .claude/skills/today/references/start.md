@@ -11,7 +11,7 @@
    - 各イベントを `index.py --type meeting --date <今日> --with-calendar-ids` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。
    - ノート名は `YYYY-MM-DD 会議名` とする（定例会議は毎回同じイベント名を持つため、日付を含めないと2回目の生成が同名衝突で終了コード1になる）。
    - イベントに `recurringEventId` が無い（単発イベントである）場合は `--set calendar_series_id=...` を渡さず、`calendar_series_id` は空のままにする。
-   - `## 資料` をイベントから埋める。
+   - `## 資料` と `## 会議情報`（URL・出席者・場所）をイベントから埋める（`references/calendar.md` 参照）。
 7. **定例会議は前回の議事録から転記する。** 定例（`calendar_series_id` が一致）は前回の同シリーズ議事録から `## アクション` の未完分と `## 議題` を転記する。
    - 当日の会議が3件以上を目安に、各会議の過去議事録探索を Explore サブエージェントへ並列委任する。
    - 探索範囲は `Cabinet/Notes/` のみ。
