@@ -131,8 +131,52 @@ def test_project_option_creates_the_note_in_the_project_folder(tmp_path):
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "Cabinet/Notes/大手町DC コアSW更改/C9500 見積依頼.md"
-    assert (vault / "Cabinet" / "Notes" / "大手町DC コアSW更改" / "C9500 見積依頼.md").is_file()
+    assert result.stdout.strip() == "Cabinet/Notes/大手町DC コアSW更改/task/C9500 見積依頼.md"
+    assert (
+        vault / "Cabinet" / "Notes" / "大手町DC コアSW更改" / "task" / "C9500 見積依頼.md"
+    ).is_file()
+
+
+def test_meeting_with_project_creates_the_note_under_meeting_subfolder(tmp_path):
+    vault = make_vault(tmp_path)
+    meeting_templates = vault / "Cabinet" / "Templates"
+    (meeting_templates / "meeting.md").write_text(TASK_TEMPLATE, encoding="utf-8")
+
+    result = run_new_note(
+        vault, "--type", "meeting", "--title", "定例会議",
+        "--project", "大手町DC コアSW更改",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "Cabinet/Notes/大手町DC コアSW更改/meeting/定例会議.md"
+    assert (
+        vault / "Cabinet" / "Notes" / "大手町DC コアSW更改" / "meeting" / "定例会議.md"
+    ).is_file()
+
+
+def test_project_type_creates_the_note_in_its_own_dated_folder(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "Cabinet" / "Templates" / "project.md").write_text(TASK_TEMPLATE, encoding="utf-8")
+
+    result = run_new_note(vault, "--type", "project", "--title", "新規案件")
+
+    today = dt.date.today().isoformat()
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == f"Cabinet/Notes/{today}_新規案件/新規案件.md"
+    assert (vault / "Cabinet" / "Notes" / f"{today}_新規案件" / "新規案件.md").is_file()
+
+
+def test_project_type_uses_explicit_date_override_for_the_folder_name(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "Cabinet" / "Templates" / "project.md").write_text(TASK_TEMPLATE, encoding="utf-8")
+
+    result = run_new_note(
+        vault, "--type", "project", "--title", "新規案件", "--set", "date=2020-01-01",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "Cabinet/Notes/2020-01-01_新規案件/新規案件.md"
+    assert (vault / "Cabinet" / "Notes" / "2020-01-01_新規案件" / "新規案件.md").is_file()
 
 
 def test_project_folder_is_created_when_missing(tmp_path):
@@ -154,6 +198,17 @@ def test_without_project_the_note_stays_directly_under_notes(tmp_path):
     assert result.stdout.strip() == "Cabinet/Notes/C9500後継機のEOSL確認.md"
 
 
+def test_know_how_with_project_still_stays_directly_under_notes(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "Cabinet" / "Templates" / "know-how.md").write_text(TASK_TEMPLATE, encoding="utf-8")
+
+    result = run_new_note(
+        vault, "--type", "know-how", "--title", "BGPのルートリフレクタ設計", "--project", "A案件"
+    )
+
+    assert result.stdout.strip() == "Cabinet/Notes/BGPのルートリフレクタ設計.md"
+
+
 def test_duplicate_title_in_the_same_project_returns_1(tmp_path):
     vault = make_vault(tmp_path)
     run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "A案件")
@@ -170,7 +225,7 @@ def test_same_title_in_different_projects_is_allowed(tmp_path):
     result = run_new_note(vault, "--type", "task", "--title", "見積依頼", "--project", "B案件")
 
     assert result.returncode == 0, result.stderr
-    assert (vault / "Cabinet" / "Notes" / "B案件" / "見積依頼.md").is_file()
+    assert (vault / "Cabinet" / "Notes" / "B案件" / "task" / "見積依頼.md").is_file()
 
 
 def test_invalid_project_character_is_rejected(tmp_path):

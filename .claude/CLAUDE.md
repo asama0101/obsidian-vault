@@ -15,7 +15,7 @@
 vault/
 ├── Documents/          ← 人間がドラッグ&ドロップで投入する資料。締め完了時点で直下は空
 ├── Cabinet/            ← Claude Code専管ゾーン
-│   ├── Notes/          ← 案件フォルダ <案件名>/ と、直下の know-how・案件未確定ノート
+│   ├── Notes/          ← 案件フォルダ <日付>_<案件名>/ と、直下の know-how・案件未確定ノート
 │   ├── Reference/      ← 案件横断・長寿命の資料（メーカー資料・規格書）
 │   ├── Diary/          ← デイリーノート。当日分が人間との唯一の接点、それ以外は過去分
 │   ├── Assets/         ← Obsidianの添付ファイル
@@ -29,7 +29,7 @@ vault/
 
 ノートや資料をvault直下に置かない。直下に並ぶのは `Documents/`・`Cabinet/`・`README.md`・`.claude/`・`.obsidian/` と、`.gitignore` のような設定ファイルだけとする。デイリーノートも直下には置かない。
 
-`Cabinet/Notes/` は案件フォルダ `<案件名>/` を持つ。project ノート・配下の task・meeting・案件資料をそこに集約し、案件単位の閲覧と資料紐付けを成立させる。know-how と案件未確定のノートは直下に置く。`type` の判定は引き続き frontmatter の `type` プロパティで行い、フォルダには依存させない。フォルダは置き場所の分類であって判定基準ではない。案件フォルダ名は project ノート名と一致させる。
+`Cabinet/Notes/` は案件フォルダ `<作成日>_<案件名>/` を持つ。`<作成日>` は project ノートの `date` の値で、フォルダ名にだけ付く（project ノートのファイル名・タイトル・`project` プロパティの `[[リンク]]` には日付を付けない）。フォルダ直下は project ノート自身だけを置き、配下の `meeting/`・`task/`・`documents/` サブフォルダに議事録・タスク・案件資料を分けて集約する。know-how と案件未確定のノートは `Cabinet/Notes/` 直下に置く。`type` の判定は引き続き frontmatter の `type` プロパティで行い、フォルダには依存させない。フォルダは置き場所の分類であって判定基準ではない。フォルダ名の案件名部分は project ノート名と一致させる（日付プレフィックスを除く）。
 
 ## ノート種別とプロパティ
 
@@ -113,7 +113,7 @@ AIは人間が書いた文言を書き換えない。捕捉してノート化し
 ## スクリプト
 
 - `.claude/scripts/index.py`: ノートの索引をTSVで出力する。`Cabinet/Notes/` の一覧を読む唯一の経路。`rglob` で案件フォルダも走査する。既定で完了物（`task` の `4_done`/`5_cancelled`、`project` の `2_done`）とカレンダーID列を落とす。
-- `.claude/scripts/new_note.py`: テンプレートからノートを1件作る。`--project` で案件フォルダへ配置する。
+- `.claude/scripts/new_note.py`: テンプレートからノートを1件作る。`--type project` は `--project` を無視し、`<作成日>_<title>/<title>.md` という自分専用の日付付きフォルダに作る。`--type task`/`meeting` は `--project` を指定すると `<project>/task/` または `<project>/meeting/` に配置する（`project` は既存フォルダ名をそのまま使う文字列で、曖昧一致や自動検索は行わない）。それ以外は `Cabinet/Notes/` 直下に作る。
 - `.claude/scripts/close_day.sh`: 締めのgit操作。日付はブランチ名から取り、`Cabinet/Diary/<その日>.md` の存在と frontmatter の `date` の一致を検査してからコミットする。`date` は前後の空白・引用符・復帰文字を落として正規化してから比較するため、Obsidianのプロパティパネルが引用符付きで書いた値でも通る。`git add -A` の後にステージした差分が無ければ `コミットする変更が無いためコミットをスキップしました` と出力してコミットを飛ばし、`main` へのマージへ進む。これにより、同じ日次ブランチ上で締めを繰り返してもエラーにならない。ただし締めが成功すると HEAD は `main` に残るため、そのまま `/close` を再実行した場合は日次ブランチ検査に引っかかり `日次ブランチ (daily/*) 上で実行してください` で終了コード1になる。
 
 テストは `python3 -m pytest .claude/scripts/tests/` で実行する。

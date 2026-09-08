@@ -42,7 +42,7 @@ branch-guard フックは `main`/`master` 上での Write/Edit/MultiEdit、お�
 
    **設計判断:** `close_day.sh` にこの検査は入れない。資料の未振り分けはデータ破壊ではなく、ここで締めを止めると急いでいる日に締め自体を放棄することになるため。
 7. **`Cabinet/Bases/` に view を足す。** その日のⓘ行が告知したタグの第2階層に新しい値が生まれていれば、対応する軸の `.base` に view を1本足す。書式は既存の view に合わせる（`type` の一致と `file.hasTag("<第1階層>/<第2階層>")` を `filters.and` に並べる）。このステップは人間の判断を要さない。
-8. **直下の未確定ノートを案件フォルダへ移す。** `index.py --updated-on <今日>` の `path` 列が `Cabinet/Notes/<ファイル名>.md`（フォルダを挟まない）で、かつ `type` が `task` か `meeting` のものを一覧する。案件が決まったものは移動先の案件フォルダを確認してから `mv` で移し、`project` プロパティも合わせて書く。案件がまだ決まらないものは直下に残す。know-how は project を持たないため対象外。
+8. **直下の未確定ノートを案件フォルダへ移す。** `index.py --updated-on <今日>` の `path` 列が `Cabinet/Notes/<ファイル名>.md`（フォルダを挟まない）で、かつ `type` が `task` か `meeting` のものを一覧する。案件が決まったものは `ls Cabinet/Notes/` または `index.py` の `path` 列で正確な移動先フォルダ名（日付込み）を確認し、`type` が `task` なら `<フォルダ名>/task/` へ、`meeting` なら `<フォルダ名>/meeting/` へ、フォルダが無ければ `mkdir -p` してから `mv` で移す。`project` プロパティも合わせて書く。案件がまだ決まらないものは直下に残す。know-how は project を持たないため対象外。
 9. **`bash .claude/scripts/close_day.sh` を実行する。** 日付はブランチ名から取られ、`Cabinet/Diary/<その日>.md` の存在と frontmatter の `date` の一致が検査される。ステップ2〜8で行ったファイル変更（デイリーノート・タスクノート・`Cabinet/MEMORY.md`・`Documents/`・`.base`・移動したノート）は、すべてこの `git add -A` が拾って1コミットにまとめる。
 10. **`/loop` を停止する。** `ScheduleWakeup` ツールを `stop: true` で呼ぶ。成否にかかわらず停止する。失敗は人間の介入を要する状態であり、自動処理を続ける理由が無いため。
 
@@ -72,7 +72,7 @@ HEAD が `main` に残ったこの状態のまま `/close` を再実行すると
   - 構成図v3.pdf → 案件名を教えてください（不明なら Documents/未分類/ へ落とします）
 
 【6. ノート移動】直下にあるノートのうち、案件が決まったものを移します。
-  - [[C9500後継機のEOSL確認]] → Cabinet/Notes/大手町DC コアSW更改/ でよいですか
+  - [[C9500後継機のEOSL確認]] → Cabinet/Notes/2026-08-01_大手町DC コアSW更改/task/ でよいですか
 
 違うものだけ指摘してください。指摘が無ければこの内容で締めます。
 ```

@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """テンプレートから Cabinet/Notes/ にノートを1件作る。
 
-`--project` を指定すると Cabinet/Notes/<案件名>/ の下に作り、案件フォルダが
-無ければ作る。未指定なら Cabinet/Notes/ 直下に作る。
+配置ルールは type によって異なる。
+
+- `--type project`: `Cabinet/Notes/<date>_<title>/<title>.md` に作る。
+  `<date>` はfrontmatterの `date`（`--set date=...` 指定が無ければ実行日）。
+  `--project` は無視する。
+- `--type task` / `--type meeting` かつ `--project` 指定あり:
+  `Cabinet/Notes/<project>/<type>/<title>.md` に作る。案件フォルダが
+  無ければ作る。`--project` は既存フォルダ名をそのまま使う文字列で、
+  曖昧一致や自動検索は行わない。
+- それ以外（`--project` 未指定、または `--type know-how`）:
+  `Cabinet/Notes/<title>.md` 直下に作る。
 
 終了コードは 0=成功、1=同名ノートが既にある、2=入力エラー。
 """
@@ -95,12 +104,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"テンプレートがありません: {template}", file=sys.stderr)
         return 2
 
-    notes_dir = vault / "Cabinet" / "Notes"
-    target = notes_dir / project / f"{title}.md" if project else notes_dir / f"{title}.md"
-    if target.exists():
-        print(f"同名のノートが既にあります: {target.relative_to(vault).as_posix()}", file=sys.stderr)
-        return 1
-
     try:
         overrides = parse_set(args.sets)
         overrides.setdefault("date", dt.date.today().isoformat())
@@ -109,6 +112,18 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
+
+    notes_dir = vault / "Cabinet" / "Notes"
+    if args.type == "project":
+        date_value = overrides["date"]
+        target = notes_dir / f"{date_value}_{title}" / f"{title}.md"
+    elif args.type in ("task", "meeting") and project:
+        target = notes_dir / project / args.type / f"{title}.md"
+    else:
+        target = notes_dir / f"{title}.md"
+    if target.exists():
+        print(f"同名のノートが既にあります: {target.relative_to(vault).as_posix()}", file=sys.stderr)
+        return 1
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("---\n" + "\n".join(fm_lines) + "\n---\n" + body, encoding="utf-8")
