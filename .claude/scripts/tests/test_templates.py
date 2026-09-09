@@ -13,7 +13,7 @@ VAULT = Path(__file__).resolve().parents[3]
 NEW_NOTE = VAULT / ".claude" / "scripts" / "new_note.py"
 
 EXPECTED_KEYS = {
-    "task": ["type", "date", "status", "due", "done", "project", "tags"],
+    "task": ["type", "date", "status", "due", "done", "project", "tags", "blocked_by"],
     "project": ["type", "date", "status", "due", "tags"],
     "meeting": [
         "type", "date", "status", "project", "tags",

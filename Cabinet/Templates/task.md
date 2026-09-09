@@ -6,6 +6,7 @@ due:
 done:
 project:
 tags:
+blocked_by:
 ---
 
 ## 完了条件
