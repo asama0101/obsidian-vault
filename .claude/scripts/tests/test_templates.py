@@ -72,7 +72,7 @@ def test_today_template_has_the_four_sections():
     assert [line for line in text.split("\n") if line.startswith("## ")] == [
         "## 今日の予定",
         "## 今日のタスク",
-        "## Claudeが確認したいこと",
+        "## Claudeからの連絡",
         "## メモ",
     ]
 
