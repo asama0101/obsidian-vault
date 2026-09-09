@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "index.py"
-COLUMN_COUNT = 10
-COLUMN_COUNT_WITH_CALENDAR_IDS = 12
+COLUMN_COUNT = 11
+COLUMN_COUNT_WITH_CALENDAR_IDS = 13
 
 
 def write_note(vault: Path, name: str, body: str) -> Path:
@@ -65,6 +65,7 @@ def test_columns_are_in_fixed_order(tmp_path):
     assert row[7] == "2026-09-07"
     assert row[8] == "見積書の作成"
     assert row[9].startswith("20")
+    assert row[10] == ""
 
 
 def test_empty_property_becomes_empty_string(tmp_path):
@@ -312,8 +313,8 @@ def test_with_calendar_ids_appends_the_two_columns(tmp_path):
     row = rows(run_index(tmp_path, "--with-calendar-ids"))[0]
 
     assert len(row) == COLUMN_COUNT_WITH_CALENDAR_IDS
-    assert row[10] == "evt-123"
-    assert row[11] == "series-456"
+    assert row[11] == "evt-123"
+    assert row[12] == "series-456"
 
 
 def test_done_task_is_excluded_by_default(tmp_path):
@@ -383,3 +384,23 @@ def test_due_before_combines_with_type_as_and(tmp_path):
     result = rows(run_index(tmp_path, "--type", "task", "--due-before", "2026-09-07"))
 
     assert [row[8] for row in result] == ["A"]
+
+
+def test_blocked_by_inline_list_is_joined_with_commas(tmp_path):
+    write_note(
+        tmp_path,
+        "C9500 納品確認.md",
+        "---\ntype: task\nblocked_by: [\"[[C9500 見積依頼]]\", \"[[稟議承認]]\"]\n---\n",
+    )
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[10] == "[[C9500 見積依頼]],[[稟議承認]]"
+
+
+def test_blocked_by_is_empty_when_absent(tmp_path):
+    write_note(tmp_path, "A.md", "---\ntype: task\n---\n")
+
+    row = rows(run_index(tmp_path))[0]
+
+    assert row[10] == ""

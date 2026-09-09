@@ -24,6 +24,7 @@ COLUMNS = [
     "date",
     "title",
     "mtime",
+    "blocked_by",
 ]
 CALENDAR_COLUMNS = ["calendar_event_id", "calendar_series_id"]
 ALL_COLUMNS = COLUMNS + CALENDAR_COLUMNS
