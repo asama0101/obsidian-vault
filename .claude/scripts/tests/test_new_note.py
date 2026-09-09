@@ -179,6 +179,20 @@ def test_project_type_uses_explicit_date_override_for_the_folder_name(tmp_path):
     assert (vault / "Cabinet" / "Notes" / "2020-01-01_新規案件" / "新規案件.md").is_file()
 
 
+def test_project_type_creates_the_common_subfolders(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "Cabinet" / "Templates" / "project.md").write_text(TASK_TEMPLATE, encoding="utf-8")
+
+    result = run_new_note(vault, "--type", "project", "--title", "新規案件")
+
+    today = dt.date.today().isoformat()
+    project_dir = vault / "Cabinet" / "Notes" / f"{today}_新規案件"
+    assert result.returncode == 0, result.stderr
+    assert (project_dir / "meeting").is_dir()
+    assert (project_dir / "task").is_dir()
+    assert (project_dir / "documents").is_dir()
+
+
 def test_project_folder_is_created_when_missing(tmp_path):
     vault = make_vault(tmp_path)
     assert not (vault / "Cabinet" / "Notes" / "新宿局 回線増設").exists()

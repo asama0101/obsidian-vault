@@ -126,6 +126,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     target.parent.mkdir(parents=True, exist_ok=True)
+    if args.type == "project":
+        for subfolder in ("meeting", "task", "documents"):
+            (target.parent / subfolder).mkdir(exist_ok=True)
     target.write_text("---\n" + "\n".join(fm_lines) + "\n---\n" + body, encoding="utf-8")
     print(target.relative_to(vault).as_posix())
     return 0
