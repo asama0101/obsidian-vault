@@ -5,7 +5,7 @@
 1. 日次ブランチを確認・作成する。
 2. `Cabinet/Templates/today.md` から `Cabinet/Diary/<今日の日付>.md` を作り、`date` を今日にする。同名のファイルが既にあれば作り直さず、そのまま使う（`main` 上に当日分が残っていた場合。書きかけの `## メモ` を消さないため）。
 3. `Cabinet/MEMORY.md` を読む。
-4. 前日の `Cabinet/Diary/<前日>.md` に未処理の痕跡（`- ⚠ 未処理 N件` の行）があれば、`## メモ` に `- 前日の未処理: [[Cabinet/Diary/<前日>]]` の1行を書く。取りこぼしを翌日に繰り越して見えるようにするため。
+4. 前日の `Cabinet/Diary/<前日>.md` に未処理の痕跡（`- ⚠ 未処理 N件` の行）があれば、`## Claudeからの連絡` の `### 連絡事項` に `- 前日の未処理: [[Cabinet/Diary/<前日>]]` の1行を書く。取りこぼしを翌日に繰り越して見えるようにするため。
 5. カレンダーを取得する（`references/calendar.md` 参照）。
 6. **カレンダーイベントに対応する議事録ノートを作る。**
    - 各イベントを `index.py --type meeting --date <今日> --with-calendar-ids` の出力の `calendar_event_id` 列と照合し、一致が無ければ `new_note.py --type meeting --title "<今日の日付> <会議名>" --set calendar_event_id=<イベントのid> --set calendar_series_id=<recurringEventId>` で作る。
