@@ -8,11 +8,13 @@
 
 `status`/`due`/`tags` の直接編集（`note-editing.md`）と同じく、対象が一意に特定できれば即時実行する。書き込みを伴うため、`common.md` の日次ブランチ規律に従う。
 
+`--project` に渡す値は project 名そのものではなく、`<作成日>_<project名>` の日付プレフィックス付き案件フォルダ名である（`note-placement.md`）。あいまい一致は無いため、実行前に `index.py` の `path` 列（または `ls Cabinet/Notes/`）で正確なフォルダ名を確認する。
+
 1. **project名が完全一致で1件** → その場で実行する。
 
    ```bash
    python3 .claude/scripts/new_note.py --type task --title "<タスク名>" \
-       --project "<project名>" --set 'project="[[<project名>]]"' \
+       --project "<案件フォルダ名>" --set 'project="[[<project名>]]"' \
        [--set due=<日付>] [--set 'blocked_by=["[[<依存タスク名>]]"]']
    ```
 
@@ -20,14 +22,14 @@
 
    > 「`<project名>` というprojectはありません。新規作成してtaskを紐づけますか？（種別タグ、例: `種別/更改`・`種別/障害` も教えてください）」
 
-   Yesと種別の回答を受けてから、まず以下でprojectを作成し、続けて1のtask作成コマンドを実行する。
+   Yesと種別の回答を受けてから、まず以下でprojectを作成する。
 
    ```bash
    python3 .claude/scripts/new_note.py --type project --title "<project名>" \
        --set 'tags=[<回答された種別>]'
    ```
 
-   人間が種別を即答できない場合は `種別/未分類` を暫定値として作成する（必須タグを空欄のまま残さない）。
+   人間が種別を即答できない場合は `種別/未分類` を暫定値として作成する（必須タグを空欄のまま残さない）。`new_note.py` は作成したノートのvault相対パス（例: `Cabinet/Notes/2026-11-12_<project名>/<project名>.md`）を標準出力に返すので、そこから案件フォルダ名を取り出し、続けて1のtask作成コマンドの `--project` に渡す。
 
 3. **複数candidateにあいまい一致** → 新規作成はせず、候補一覧を提示して人間に選ばせる。選択後は1のフローで実行する。
 
@@ -35,7 +37,7 @@
 
 トリガー: 「棚卸しして」（全体）／「〇〇プロジェクトを棚卸しして」（単一project）。締めモードには組み込まず、会話依頼でのみ実行する。
 
-`index.py` の出力（`blocked_by` 列を含む）を使い、以下を確認する。単一project指定時は該当projectの配下のみに絞る。
+`index.py --all`（完了物を含める。項目2の全体件数と項目4(b)の完了済みブロック元の検知に必要）の出力（`blocked_by` 列を含む）を使い、以下を確認する。単一project指定時は該当projectの配下のみに絞る。
 
 1. **案件未確定ノートの滞留**（全体棚卸しのみ）: `Cabinet/Notes/` 直下にある `type: task`・`type: meeting` のノートを、作成日・タイトルとともに列挙する。滞留日数のしきい値は設けない。事実の列挙に留め、人間の判断に委ねる。
 2. **projectごとのタスク件数サマリ**: 配下task件数（全体・未完了・`blocked_by`が埋まっている件数）をprojectごとに集計する。

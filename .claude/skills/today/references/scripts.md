@@ -26,7 +26,7 @@ python3 .claude/scripts/new_note.py --type know-how --title "BGPのルートリ�
 
 # blocked_by は project 同様 "[[タスク名]]" のリンク形式で渡す
 python3 .claude/scripts/new_note.py --type task --title "C9500 納品確認" \
-    --project "大手町DC コアSW更改" \
+    --project "2026-01-15_大手町DC コアSW更改" \
     --set 'blocked_by=["[[C9500 見積依頼]]"]'
 
 # 締め（コミット・ffマージ・push）
