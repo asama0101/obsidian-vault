@@ -44,6 +44,7 @@ vault/
 | tags | ○ | ● | ○ | ● |
 | calendar_event_id | | | ○ | |
 | calendar_series_id | | | ○ | |
+| blocked_by | ○ | | | |
 
 `tags` は階層タグで、第1階層を `メーカー` / `領域` / `種別` / `ベンダー` / `設備` の5つに固定する。付ける対象は type で絞る（project は `種別/` 必須、know-how は `領域/` が主軸、task・meeting は原則なし）。規則の正典は `.claude/skills/today/references/tags.md`。`project` は `"[[案件名]]"` またはそのリストで親案件を指す。
 
