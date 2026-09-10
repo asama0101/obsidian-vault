@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Cabinet/Notes/ のノートを索引化してTSVで出力する。
+"""ノートを索引化してTSVで出力する。
 
-秘書ループが Cabinet/Notes/ の一覧を読む唯一の経路。個別ノートの読み込みは、実際に
+`1_Notes/`・`2_know-how/`・`3_Inbox/`・`4_Archive/` の4フォルダを再帰的に走査し、
+加えてvault直下にフラット配置された案件ノート（`README.md`を除く）も対象にする。
+秘書ループがノート一覧を読む唯一の経路。個別ノートの読み込みは、実際に
 そのノートを編集するときだけ行う。出力はヘッダ行を持たず、1行が1ノートに対応する。
 """
 from __future__ import annotations
@@ -110,12 +112,24 @@ def build_row(note: Path, vault_root: Path) -> dict[str, str]:
     return row
 
 
+NOTE_DIRS = ["1_Notes", "2_know-how", "3_Inbox", "4_Archive"]
+
+
 def collect(vault_root: Path) -> list[dict[str, str]]:
-    """Cabinet/Notes/ 配下（案件フォルダを含む）の .md をパス順に索引化する。"""
-    notes_dir = vault_root / "Cabinet" / "Notes"
-    if not notes_dir.is_dir():
-        return []
-    return [build_row(note, vault_root) for note in sorted(notes_dir.rglob("*.md"))]
+    """索引対象フォルダとvault直下の .md をパス順に索引化する。
+
+    対象は `1_Notes/`・`2_know-how/`・`3_Inbox/`・`4_Archive/` の再帰走査と、
+    vault直下にフラット配置された案件ノート（`README.md` を除く）。
+    """
+    notes: list[Path] = []
+    for dir_name in NOTE_DIRS:
+        notes_dir = vault_root / dir_name
+        if notes_dir.is_dir():
+            notes.extend(notes_dir.rglob("*.md"))
+    notes.extend(
+        note for note in vault_root.glob("*.md") if note.name != "README.md"
+    )
+    return [build_row(note, vault_root) for note in sorted(notes)]
 
 
 def csv_list(value: str) -> list[str]:

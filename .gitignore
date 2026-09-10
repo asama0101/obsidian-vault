@@ -2,7 +2,7 @@
 .obsidian/workspace-mobile.json
 .trash/
 desktop.ini
-docs/
+.claude/docs/
 .worktrees/
 .claude/scheduled_tasks.lock
 !.claude/settings.local.json

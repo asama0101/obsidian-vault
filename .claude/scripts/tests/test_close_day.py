@@ -18,15 +18,15 @@ def git(repo: Path, *args: str) -> str:
 def make_repo(tmp_path: Path, today: str = "2026-09-07") -> Path:
     """main と daily ブランチを持ち、デイリーノートが置かれたリポジトリを作る。"""
     repo = tmp_path / "vault"
-    (repo / "Cabinet" / "Diary").mkdir(parents=True)
-    (repo / "Cabinet" / "Diary" / ".gitkeep").write_text("", encoding="utf-8")
+    (repo / "6_Cabinet" / "Diary").mkdir(parents=True)
+    (repo / "6_Cabinet" / "Diary" / ".gitkeep").write_text("", encoding="utf-8")
     subprocess.run(["git", "init", "-q", "-b", "main", str(repo)], check=True)
     git(repo, "config", "user.email", "test@example.com")
     git(repo, "config", "user.name", "test")
     git(repo, "add", "-A")
     git(repo, "commit", "-q", "-m", "初期コミット")
     git(repo, "checkout", "-q", "-b", f"daily/{today}")
-    (repo / "Cabinet" / "Diary" / f"{today}.md").write_text(
+    (repo / "6_Cabinet" / "Diary" / f"{today}.md").write_text(
         f"---\ndate: {today}\n---\n\n## メモ\n- 覚え書き\n", encoding="utf-8"
     )
     return repo
@@ -44,10 +44,10 @@ def test_commits_diary_note_of_the_day(tmp_path):
     result = run_close(repo)
 
     assert result.returncode == 0, result.stderr
-    assert (repo / "Cabinet" / "Diary" / "2026-09-07.md").is_file()
+    assert (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").is_file()
     # 締めのコミットにデイリーノートが含まれること。
     tracked = git(repo, "show", "--name-only", "--pretty=format:", "HEAD").split("\n")
-    assert "Cabinet/Diary/2026-09-07.md" in tracked
+    assert "6_Cabinet/Diary/2026-09-07.md" in tracked
 
 
 def test_fast_forwards_main_and_ends_on_main(tmp_path):
@@ -99,7 +99,7 @@ def test_merges_to_main_when_there_is_nothing_to_commit(tmp_path):
 def test_accepts_date_property_written_with_quotes_or_padding(tmp_path, frontmatter):
     """date の値に空白・引用符・CRLF が混じっていても締められる。"""
     repo = make_repo(tmp_path)
-    note = repo / "Cabinet" / "Diary" / "2026-09-07.md"
+    note = repo / "6_Cabinet" / "Diary" / "2026-09-07.md"
     note.write_bytes(frontmatter)
 
     result = run_close(repo)
@@ -111,17 +111,17 @@ def test_accepts_date_property_written_with_quotes_or_padding(tmp_path, frontmat
 
 def test_fails_when_diary_note_is_missing(tmp_path):
     repo = make_repo(tmp_path)
-    (repo / "Cabinet" / "Diary" / "2026-09-07.md").unlink()
+    (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").unlink()
 
     result = run_close(repo)
 
     assert result.returncode == 1
-    assert "Cabinet/Diary/2026-09-07.md" in result.stderr
+    assert "6_Cabinet/Diary/2026-09-07.md" in result.stderr
 
 
 def test_fails_when_date_property_is_malformed(tmp_path):
     repo = make_repo(tmp_path)
-    note = repo / "Cabinet" / "Diary" / "2026-09-07.md"
+    note = repo / "6_Cabinet" / "Diary" / "2026-09-07.md"
     note.write_text("---\ndate: きょう\n---\n", encoding="utf-8")
 
     result = run_close(repo)
@@ -136,7 +136,7 @@ def test_fails_when_date_property_is_malformed(tmp_path):
 def test_fails_when_date_property_does_not_match_file_name(tmp_path):
     repo = make_repo(tmp_path)
     head_before = git(repo, "rev-parse", "HEAD")
-    note = repo / "Cabinet" / "Diary" / "2026-09-07.md"
+    note = repo / "6_Cabinet" / "Diary" / "2026-09-07.md"
     note.write_text("---\ndate: 2026-09-06\n---\n", encoding="utf-8")
 
     result = run_close(repo)
@@ -154,7 +154,7 @@ def test_fails_when_not_on_a_daily_branch(tmp_path):
     repo = make_repo(tmp_path)
     git(repo, "checkout", "-q", "-b", "feature/other")
     # ノートが無くてもブランチのエラーが出ることで、検査順序を固定する。
-    (repo / "Cabinet" / "Diary" / "2026-09-07.md").unlink()
+    (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").unlink()
 
     result = run_close(repo)
 
@@ -183,7 +183,7 @@ def test_fails_when_main_cannot_fast_forward(tmp_path):
     assert git(repo, "rev-parse", "main") == main_after
     assert git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "daily/2026-09-07"
     # 締め失敗時は作業ツリーを締め前の状態に復元する（/loopの二重化を防ぐため）。
-    assert (repo / "Cabinet" / "Diary" / "2026-09-07.md").exists()
+    assert (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").exists()
     assert git(repo, "rev-parse", "daily/2026-09-07") == daily_head_before
 
 
@@ -199,7 +199,7 @@ def test_restores_worktree_when_checkout_main_fails(tmp_path):
     assert git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "daily/2026-09-07"
     # ff 失敗時と同じ復元経路を通り、コミットが取り消されデイリーノートが残ること。
     assert git(repo, "rev-parse", "daily/2026-09-07") == daily_head_before
-    assert (repo / "Cabinet" / "Diary" / "2026-09-07.md").is_file()
+    assert (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").is_file()
 
 
 def test_reports_recovery_steps_when_push_fails(tmp_path):
@@ -211,5 +211,5 @@ def test_reports_recovery_steps_when_push_fails(tmp_path):
     assert result.returncode == 1
     assert "git pull --rebase origin main" in result.stderr
     # push 失敗では復元しない。main は進んだままでよい。
-    assert (repo / "Cabinet" / "Diary" / "2026-09-07.md").is_file()
+    assert (repo / "6_Cabinet" / "Diary" / "2026-09-07.md").is_file()
     assert git(repo, "rev-parse", "main") == git(repo, "rev-parse", "daily/2026-09-07")

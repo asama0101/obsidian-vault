@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""テンプレートから Cabinet/Notes/ にノートを1件作る。
+"""テンプレートからノートを1件作る。
 
 配置ルールは type によって異なる。
 
-- `--type project`: `Cabinet/Notes/<date>_<title>/<title>.md` に作る。
-  `<date>` はfrontmatterの `date`（`--set date=...` 指定が無ければ実行日）。
-  `--project` は無視する。
+- `--type project`: ノート自体は vault 直下にフラットに作る
+  （`<title>.md`）。日付プレフィックスは付けない
+  （frontmatterの `date` は `--set date=...` 指定が無ければ実行日を設定する）。
+  加えて `1_Notes/<title>/` 配下に `meeting/`・`task/`・`documents/` の
+  3サブフォルダを作る。`--project` は無視する。
 - `--type task` / `--type meeting` かつ `--project` 指定あり:
-  `Cabinet/Notes/<project>/<type>/<title>.md` に作る。案件フォルダが
-  無ければ作る。`--project` は既存フォルダ名をそのまま使う文字列で、
-  曖昧一致や自動検索は行わない。
-- それ以外（`--project` 未指定、または `--type know-how`）:
-  `Cabinet/Notes/<title>.md` 直下に作る。
+  `1_Notes/<project>/<type>/<title>.md` に作る。案件フォルダが無ければ
+  作る。`--project` は既存フォルダ名をそのまま使う文字列で、曖昧一致や
+  自動検索は行わない。
+- `--type know-how`: `2_know-how/<title>.md` に作る。
+- `--type task` / `--type meeting` かつ `--project` 未指定:
+  `3_Inbox/<title>.md` に作る。
 
 終了コードは 0=成功、1=同名ノートが既にある、2=入力エラー。
 """
@@ -99,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     vault = args.vault_root.resolve()
-    template = vault / "Cabinet" / "Templates" / f"{args.type}.md"
+    template = vault / "6_Cabinet" / "Templates" / f"{args.type}.md"
     if not template.is_file():
         print(f"テンプレートがありません: {template}", file=sys.stderr)
         return 2
@@ -113,14 +116,14 @@ def main(argv: list[str] | None = None) -> int:
         print(str(error), file=sys.stderr)
         return 2
 
-    notes_dir = vault / "Cabinet" / "Notes"
     if args.type == "project":
-        date_value = overrides["date"]
-        target = notes_dir / f"{date_value}_{title}" / f"{title}.md"
+        target = vault / f"{title}.md"
+    elif args.type == "know-how":
+        target = vault / "2_know-how" / f"{title}.md"
     elif args.type in ("task", "meeting") and project:
-        target = notes_dir / project / args.type / f"{title}.md"
+        target = vault / "1_Notes" / project / args.type / f"{title}.md"
     else:
-        target = notes_dir / f"{title}.md"
+        target = vault / "3_Inbox" / f"{title}.md"
     if target.exists():
         print(f"同名のノートが既にあります: {target.relative_to(vault).as_posix()}", file=sys.stderr)
         return 1
@@ -128,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     target.parent.mkdir(parents=True, exist_ok=True)
     if args.type == "project":
         for subfolder in ("meeting", "task", "documents"):
-            (target.parent / subfolder).mkdir(exist_ok=True)
+            (vault / "1_Notes" / title / subfolder).mkdir(parents=True, exist_ok=True)
     target.write_text("---\n" + "\n".join(fm_lines) + "\n---\n" + body, encoding="utf-8")
     print(target.relative_to(vault).as_posix())
     return 0

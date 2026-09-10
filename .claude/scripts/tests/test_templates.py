@@ -16,7 +16,7 @@ EXPECTED_KEYS = {
     "task": ["type", "date", "status", "due", "done", "project", "tags", "blocked_by"],
     "project": ["type", "date", "status", "due", "tags"],
     "meeting": [
-        "type", "date", "status", "project", "tags",
+        "type", "date", "status", "project",
         "calendar_event_id", "calendar_series_id",
     ],
     "know-how": ["type", "date", "tags"],
@@ -24,7 +24,7 @@ EXPECTED_KEYS = {
 
 EXPECTED_HEADINGS = {
     "task": ["## 完了条件", "## 作業ログ"],
-    "project": ["## 概要", "## 現状と次の一手", "## 経緯", "## 関連"],
+    "project": ["## 概要", "## ステークホルダ", "## マイルストーン", "## メモ", "## ドキュメント", "## 関連"],
     "meeting": ["## 会議情報", "## 議題", "## 資料", "## メモ", "## 決定事項", "## アクション"],
     "know-how": ["## 状況", "## 手順", "## 注意点"],
 }
@@ -46,27 +46,26 @@ def frontmatter_keys(text: str) -> list[str]:
 @pytest.fixture
 def vault(tmp_path):
     """vault本体のテンプレートをコピーした一時vaultを作る。"""
-    shutil.copytree(VAULT / "Cabinet" / "Templates", tmp_path / "Cabinet" / "Templates")
-    (tmp_path / "Cabinet" / "Notes").mkdir()
+    shutil.copytree(VAULT / "6_Cabinet" / "Templates", tmp_path / "6_Cabinet" / "Templates")
     return tmp_path
 
 
 @pytest.mark.parametrize("note_type", sorted(EXPECTED_KEYS))
 def test_frontmatter_keys_match_the_spec(note_type):
-    text = (VAULT / "Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
 
     assert frontmatter_keys(text) == EXPECTED_KEYS[note_type]
 
 
 @pytest.mark.parametrize("note_type", sorted(EXPECTED_HEADINGS))
 def test_headings_match_the_spec(note_type):
-    text = (VAULT / "Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
 
     assert [line for line in text.split("\n") if line.startswith("## ")] == EXPECTED_HEADINGS[note_type]
 
 
 def test_today_template_has_the_four_sections():
-    text = (VAULT / "Cabinet" / "Templates" / "today.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / "today.md").read_text(encoding="utf-8")
 
     assert frontmatter_keys(text) == ["date"]
     assert [line for line in text.split("\n") if line.startswith("## ")] == [
@@ -92,29 +91,31 @@ def test_new_note_can_generate_every_type(vault, note_type):
 
     assert result.returncode == 0, result.stderr
     title = f"検証用{note_type}"
+    created_path = result.stdout.strip()
     if note_type == "project":
-        created_path = result.stdout.strip()
-        assert created_path.startswith(f"Cabinet/Notes/") and created_path.endswith(f"{title}.md")
-        created = vault / created_path
+        assert created_path == f"{title}.md"
+    elif note_type == "know-how":
+        assert created_path == f"2_know-how/{title}.md"
     else:
-        created = vault / "Cabinet" / "Notes" / f"{title}.md"
+        assert created_path == f"3_Inbox/{title}.md"
+    created = vault / created_path
     assert f"type: {note_type}" in created.read_text(encoding="utf-8")
 
 
 def test_task_status_defaults_to_todo():
-    text = (VAULT / "Cabinet" / "Templates" / "task.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / "task.md").read_text(encoding="utf-8")
 
     assert "status: 1_todo" in text
 
 
 def test_meeting_status_defaults_to_scheduled():
-    text = (VAULT / "Cabinet" / "Templates" / "meeting.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / "meeting.md").read_text(encoding="utf-8")
 
     assert "status: 1_予定" in text
 
 
 @pytest.mark.parametrize("note_type", sorted(EXPECTED_KEYS))
 def test_no_template_has_a_context_property(note_type):
-    text = (VAULT / "Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
+    text = (VAULT / "6_Cabinet" / "Templates" / f"{note_type}.md").read_text(encoding="utf-8")
 
     assert "context" not in text

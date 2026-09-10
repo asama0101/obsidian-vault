@@ -3,9 +3,8 @@
   "showLineNumber": true,
   "alwaysUpdateLinks": true,
   "openBehavior": "",
-  "newFileLocation": "folder",
-  "newFileFolderPath": "Documents",
-  "attachmentFolderPath": "Cabinet/Assets",
+  "newFileLocation": "root",
+  "attachmentFolderPath": "6_Cabinet/Assets",
   "readableLineLength": false,
   "showInlineTitle": false,
   "showUnsupportedFiles": true

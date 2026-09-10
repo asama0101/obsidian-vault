@@ -1,11 +1,11 @@
-"""Cabinet/Bases/ の .base 4本を構文と規約の面から検証する。"""
+"""6_Cabinet/Bases/ の .base 4本を構文と規約の面から検証する。"""
 from pathlib import Path
 
 import pytest
 import yaml
 
 VAULT = Path(__file__).resolve().parents[3]
-BASES_DIR = VAULT / "Cabinet" / "Bases"
+BASES_DIR = VAULT / "6_Cabinet" / "Bases"
 EXPECTED_FILES = ["タスク.base", "ノウハウ.base", "プロジェクト.base", "議事録.base"]
 
 
@@ -46,7 +46,7 @@ def test_project_base_exposes_the_embedded_view():
 
 
 def test_project_template_embeds_an_existing_view():
-    template = (VAULT / "Cabinet" / "Templates" / "project.md").read_text(encoding="utf-8")
+    template = (VAULT / "6_Cabinet" / "Templates" / "project.md").read_text(encoding="utf-8")
     names = [view["name"] for view in load("プロジェクト.base")["views"]]
 
     embedded = [

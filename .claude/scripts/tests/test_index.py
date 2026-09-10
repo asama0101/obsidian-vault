@@ -9,8 +9,8 @@ COLUMN_COUNT_WITH_CALENDAR_IDS = 13
 
 
 def write_note(vault: Path, name: str, body: str) -> Path:
-    """一時vaultの Cabinet/Notes/ にノートを1件置く。"""
-    notes = vault / "Cabinet" / "Notes"
+    """一時vaultの 1_Notes/ にノートを1件置く。"""
+    notes = vault / "1_Notes"
     notes.mkdir(parents=True, exist_ok=True)
     path = notes / name
     path.write_text(body, encoding="utf-8")
@@ -55,7 +55,7 @@ def test_columns_are_in_fixed_order(tmp_path):
     row = rows(run_index(tmp_path))[0]
 
     assert len(row) == COLUMN_COUNT
-    assert row[0] == "Cabinet/Notes/見積書の作成.md"
+    assert row[0] == "1_Notes/見積書の作成.md"
     assert row[1] == "task"
     assert row[2] == "1_todo"
     assert row[3] == "2026-09-10"
@@ -112,13 +112,13 @@ def test_tab_in_value_is_sanitized(tmp_path):
     assert row[6] == "A案件 B案件"
 
 
-def test_missing_notes_dir_outputs_nothing(tmp_path):
+def test_missing_notes_dirs_output_nothing(tmp_path):
     assert run_index(tmp_path) == ""
 
 
 def test_invalid_utf8_note_does_not_break_the_index(tmp_path):
     write_note(tmp_path, "正常なノート.md", "---\ntype: task\n---\n")
-    notes = tmp_path / "Cabinet" / "Notes"
+    notes = tmp_path / "1_Notes"
     (notes / "壊れたノート.md").write_bytes(b"---\ntype: task\ntags: [\xff\xfe]\n---\n")
 
     result = rows(run_index(tmp_path))
@@ -134,7 +134,7 @@ def test_default_vault_root_points_at_the_vault():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    assert (module.default_vault_root() / "Cabinet" / "Templates").is_dir()
+    assert (module.default_vault_root() / "6_Cabinet" / "Templates").is_dir()
 
 
 def test_filter_by_type(tmp_path):
@@ -211,8 +211,8 @@ def test_updated_on_excludes_other_dates(tmp_path):
 
 
 def write_note_in(vault: Path, folder: str, name: str, body: str) -> Path:
-    """一時vaultの Cabinet/Notes/<folder>/ にノートを1件置く。"""
-    notes = vault / "Cabinet" / "Notes" / folder
+    """一時vaultの 1_Notes/<folder>/ にノートを1件置く。"""
+    notes = vault / "1_Notes" / folder
     notes.mkdir(parents=True, exist_ok=True)
     path = notes / name
     path.write_text(body, encoding="utf-8")
@@ -242,7 +242,52 @@ def test_path_column_includes_the_project_folder(tmp_path):
 
     result = rows(run_index(tmp_path))
 
-    assert result[0][0] == "Cabinet/Notes/大手町DC コアSW更改/C9500 見積依頼.md"
+    assert result[0][0] == "1_Notes/大手町DC コアSW更改/C9500 見積依頼.md"
+
+
+def test_know_how_folder_is_scanned(tmp_path):
+    know_how = tmp_path / "2_know-how"
+    know_how.mkdir(parents=True)
+    (know_how / "BGPのルートリフレクタ設計.md").write_text("---\ntype: know-how\n---\n", encoding="utf-8")
+
+    result = rows(run_index(tmp_path))
+
+    assert result[0][0] == "2_know-how/BGPのルートリフレクタ設計.md"
+
+
+def test_inbox_folder_is_scanned(tmp_path):
+    inbox = tmp_path / "3_Inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "プロジェクト管理スキルを作る.md").write_text("---\ntype: task\n---\n", encoding="utf-8")
+
+    result = rows(run_index(tmp_path))
+
+    assert result[0][0] == "3_Inbox/プロジェクト管理スキルを作る.md"
+
+
+def test_archive_folder_is_scanned(tmp_path):
+    archive = tmp_path / "4_Archive" / "旧案件"
+    archive.mkdir(parents=True)
+    (archive / "旧案件.md").write_text("---\ntype: project\nstatus: 2_done\n---\n", encoding="utf-8")
+
+    result = rows(run_index(tmp_path, "--all"))
+
+    assert result[0][0] == "4_Archive/旧案件/旧案件.md"
+
+
+def test_project_note_flat_under_vault_root_is_listed(tmp_path):
+    (tmp_path / "奈良旅行.md").write_text("---\ntype: project\nstatus: 1_active\n---\n", encoding="utf-8")
+
+    result = rows(run_index(tmp_path))
+
+    assert result[0][0] == "奈良旅行.md"
+    assert result[0][8] == "奈良旅行"
+
+
+def test_readme_at_vault_root_is_excluded(tmp_path):
+    (tmp_path / "README.md").write_text("# vault\n", encoding="utf-8")
+
+    assert run_index(tmp_path) == ""
 
 
 def test_tags_inline_list_is_joined_with_commas(tmp_path):

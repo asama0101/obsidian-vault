@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 当日の Cabinet/Diary/<date>.md を含む変更を1コミットにまとめ、main へ ff マージし push する。
+# 当日の 6_Cabinet/Diary/<date>.md を含む変更を1コミットにまとめ、main へ ff マージし push する。
 # 終了コード: 0=成功、1=実行時エラー。
 set -euo pipefail
 
@@ -19,7 +19,7 @@ if [[ ! "$day" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
   exit 1
 fi
 
-note="Cabinet/Diary/${day}.md"
+note="6_Cabinet/Diary/${day}.md"
 if [[ ! -f "$note" ]]; then
   echo "${note} がありません" >&2
   exit 1
@@ -86,4 +86,4 @@ if ! git push -q origin main; then
   exit 1
 fi
 
-echo "締め完了: Cabinet/Diary/${day}.md を push しました"
+echo "締め完了: 6_Cabinet/Diary/${day}.md を push しました"
