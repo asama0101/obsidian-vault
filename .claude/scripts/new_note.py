@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""テンプレートからノートを1件作る。
+
+配置ルールは type によって異なる。
+
+- `--type project`: `2_Notes/<title>/<title>.md` に作る。日付プレフィックスは
+  付けない。加えて同じ `2_Notes/<title>/` 配下に `meeting/`・`task/`・
+  `documents/` の3サブフォルダを作る。`--project` は無視する。
+- `--type task` / `--type meeting` かつ `--project` 指定あり:
+  `2_Notes/<project>/<type>/<title>.md` に作る。案件フォルダが無ければ
+  作る。`--project` は既存フォルダ名をそのまま使う文字列で、曖昧一致や
+  自動検索は行わない。
+- `--type know-how`: `4_Knowledge/<title>.md` に作る。
+- `--type task` / `--type meeting` かつ `--project` 未指定:
+  `1_Inbox/<title>.md` に作る。
+
+終了コードは 0=成功、1=同名ノートが既にある、2=入力エラー。
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import sys
+from pathlib import Path
+
+NOTE_TYPES = ["task", "project", "meeting", "know-how"]
+FORBIDDEN_TITLE_CHARS = set('\\/:*?"<>|')
+
+
+def split_frontmatter(text: str) -> tuple[list[str], str]:
+    """テンプレートをfrontmatterの行リストと残りの本文に分ける。"""
+    lines = text.split("\n")
+    if not lines or lines[0].strip() != "---":
+        raise ValueError("テンプレートにfrontmatterがありません")
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            return lines[1:index], "\n".join(lines[index + 1 :])
+    raise ValueError("テンプレートのfrontmatterが閉じていません")
+
+
+def apply_overrides(fm_lines: list[str], overrides: dict[str, str]) -> list[str]:
+    """frontmatterの各行に上書き値を反映する。
+
+    テンプレートに存在しないプロパティを指定された場合は例外を送出する。
+    タイポによる無秩序なプロパティの増殖を防ぐため。
+    """
+    known = {line.partition(":")[0].strip() for line in fm_lines if ":" in line}
+    unknown = sorted(set(overrides) - known)
+    if unknown:
+        raise ValueError(f"テンプレートに存在しないプロパティです: {', '.join(unknown)}")
+    result = []
+    for line in fm_lines:
+        key = line.partition(":")[0].strip()
+        if ":" in line and key in overrides:
+            result.append(f"{key}: {overrides[key]}")
+        else:
+            result.append(line)
+    return result
+
+
+def parse_set(values: list[str]) -> dict[str, str]:
+    """`key=value` 形式の指定を辞書にする。"""
+    overrides: dict[str, str] = {}
+    for item in values:
+        key, separator, value = item.partition("=")
+        if not separator:
+            raise ValueError(f"--set は key=value 形式で指定してください: {item}")
+        overrides[key.strip()] = value.strip()
+    return overrides
+
+
+def default_vault_root() -> Path:
+    """このスクリプトの位置からvaultのルートを求める。"""
+    return Path(__file__).resolve().parents[2]
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="テンプレートからノートを1件作る")
+    parser.add_argument("--vault-root", type=Path, default=default_vault_root())
+    parser.add_argument("--type", required=True, choices=NOTE_TYPES)
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--set", action="append", default=[], dest="sets")
+    parser.add_argument("--project", help="案件フォルダ名。指定するとその配下に作る")
+    args = parser.parse_args(argv)
+
+    title = args.title.strip()
+    if not title or set(title) & FORBIDDEN_TITLE_CHARS:
+        print(f"ノート名に使えない文字が含まれています: {args.title}", file=sys.stderr)
+        return 2
+
+    project = args.project.strip() if args.project is not None else ""
+    project_parts = Path(project).parts
+    if args.project is not None and (
+        not project
+        or set(project) & FORBIDDEN_TITLE_CHARS
+        or len(project_parts) != 1
+        or project_parts[0] in {".", ".."}
+    ):
+        print(f"案件名に使えない文字が含まれています: {args.project}", file=sys.stderr)
+        return 2
+
+    vault = args.vault_root.resolve()
+    template = vault / "6_Cabinet" / "Templates" / f"{args.type}.md"
+    if not template.is_file():
+        print(f"テンプレートがありません: {template}", file=sys.stderr)
+        return 2
+
+    try:
+        overrides = parse_set(args.sets)
+        fm_lines, body = split_frontmatter(template.read_text(encoding="utf-8"))
+        known_keys = {line.partition(":")[0].strip() for line in fm_lines if ":" in line}
+        if "date" in known_keys:
+            overrides.setdefault("date", dt.date.today().isoformat())
+        fm_lines = apply_overrides(fm_lines, overrides)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+
+    if args.type == "project":
+        target = vault / "2_Notes" / title / f"{title}.md"
+    elif args.type == "know-how":
+        target = vault / "4_Knowledge" / f"{title}.md"
+    elif args.type in ("task", "meeting") and project:
+        target = vault / "2_Notes" / project / args.type / f"{title}.md"
+    else:
+        target = vault / "1_Inbox" / f"{title}.md"
+    if target.exists():
+        print(f"同名のノートが既にあります: {target.relative_to(vault).as_posix()}", file=sys.stderr)
+        return 1
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if args.type == "project":
+        for subfolder in ("meeting", "task", "documents"):
+            (target.parent / subfolder).mkdir(parents=True, exist_ok=True)
+    target.write_text("---\n" + "\n".join(fm_lines) + "\n---\n" + body, encoding="utf-8")
+    print(target.relative_to(vault).as_posix())
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

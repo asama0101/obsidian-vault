@@ -1,0 +1,17 @@
+views:
+  - type: table
+    name: 全ノウハウ一覧
+    filters:
+      and:
+        - type == "know-how"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: tags
+      direction: ASC
+    order:
+      - file.name
+      - tags
+    sort:
+      - property: file.name
+        direction: ASC

@@ -1,0 +1,10 @@
+{
+  "types": {
+    "date": "date",
+    "due": "date",
+    "aliases": "aliases",
+    "cssclasses": "multitext",
+    "tags": "tags",
+    "review": "date"
+  }
+}

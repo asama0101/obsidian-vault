@@ -1,0 +1,39 @@
+views:
+  - type: table
+    name: 進行中
+    filters:
+      and:
+        - type == "project"
+        - status == "1_active"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: tags
+      direction: ASC
+    order:
+      - file.name
+      - tags
+    sort:
+      - property: tags
+        direction: ASC
+      - property: file.mtime
+        direction: DESC
+    columnSize:
+      file.name: 836
+  - type: table
+    name: 全プロジェクト一覧
+    filters:
+      and:
+        - type == "project"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: tags
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - tags
+    sort:
+      - property: file.mtime
+        direction: DESC

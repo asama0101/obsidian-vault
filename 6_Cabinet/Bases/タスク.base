@@ -1,0 +1,209 @@
+views:
+  - type: table
+    name: 今日やること
+    filters:
+      and:
+        - type == "task"
+        - status != "5_cancelled"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+        - or:
+            - due <= today()
+            - date == today()
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - due
+      - date
+      - blocked_by
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 明日やること
+    filters:
+      and:
+        - type == "task"
+        - status != "5_cancelled"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+        - date == (today() + "1 d")
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - date
+      - due
+      - blocked_by
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 2週間以内
+    filters:
+      and:
+        - type == "task"
+        - status != "4_done"
+        - status != "5_cancelled"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+        - or:
+            - due <= (today() + "14 d")
+            - date <= (today() + "14 d")
+    groupBy:
+      property: project
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - date
+      - due
+      - blocked_by
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 3ヶ月以内
+    filters:
+      and:
+        - type == "task"
+        - status != "4_done"
+        - status != "5_cancelled"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+        - or:
+            - due <= (today() + "3 M")
+            - date <= (today() + "3 M")
+    groupBy:
+      property: project
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - date
+      - due
+      - blocked_by
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.due: 110
+  - type: table
+    name: 全タスク一覧
+    filters:
+      and:
+        - type == "task"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: project
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - date
+      - due
+      - done
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    summaries:
+      file.name: Count
+    columnSize:
+      file.name: 278
+      note.status: 130
+      note.due: 110
+  - type: table
+    name: 全タスク一覧（Open）
+    filters:
+      and:
+        - type == "task"
+        - status != "4_done"
+        - status != "5_cancelled"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: project
+      direction: ASC
+    order:
+      - file.name
+      - project
+      - status
+      - date
+      - due
+      - done
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    summaries:
+      file.name: Count
+    columnSize:
+      file.name: 278
+      note.status: 130
+      note.due: 110
+  - type: table
+    name: project別
+    filters:
+      and:
+        - type == "task"
+        - file.hasLink(this.file)
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: status
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - date
+      - due
+      - blocked_by
+    sort:
+      - property: status
+        direction: ASC
+      - property: due
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.due: 110

@@ -1,0 +1,37 @@
+views:
+  - type: table
+    name: 日付降順
+    filters:
+      and:
+        - type == "meeting"
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    groupBy:
+      property: project
+      direction: ASC
+    order:
+      - file.name
+      - date
+      - status
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
+  - type: table
+    name: project別
+    filters:
+      and:
+        - type == "meeting"
+        - file.hasLink(this.file)
+        - not:
+            - file.inFolder("6_Cabinet/Templates")
+    order:
+      - file.name
+      - date
+      - status
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 110
